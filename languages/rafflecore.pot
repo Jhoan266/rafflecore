@@ -1,0 +1,514 @@
+# Copyright (C) 2024 RaffleCore
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: RaffleCore 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin/views/dashboard.php
+msgid "Dashboard"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Ingresos Totales"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Rifas Activas"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Boletos Vendidos"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Compradores"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Rendimiento de Ventas"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Top Rifas por Ventas"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Métodos de Pago"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Ventas por Día"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Rifas Recientes"
+msgstr ""
+
+#: admin/views/dashboard.php
+msgid "Compradores Recientes"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Crear Nueva Rifa"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Editar Rifa"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Título de la rifa"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Descripción"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Valor del premio"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Precio por boleto"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Total de boletos"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Fecha del sorteo"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Imagen del premio"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Seleccionar imagen"
+msgstr ""
+
+#: admin/views/raffle-form.php
+msgid "Guardar Rifa"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Rifas Activas"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Título"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Precio"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Progreso"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Estado"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Acciones"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Ver"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Editar"
+msgstr ""
+
+#: admin/views/raffle-list.php
+msgid "Eliminar"
+msgstr ""
+
+#: admin/views/raffle-details.php
+msgid "Detalle de la Rifa"
+msgstr ""
+
+#: admin/views/raffle-details.php
+msgid "Realizar Sorteo"
+msgstr ""
+
+#: admin/views/raffle-details.php
+msgid "Ganador"
+msgstr ""
+
+#: admin/views/buyers.php
+msgid "Compradores"
+msgstr ""
+
+#: admin/views/buyers.php
+msgid "Buscar..."
+msgstr ""
+
+#: admin/views/buyers.php
+msgid "Nombre"
+msgstr ""
+
+#: admin/views/buyers.php
+msgid "Email"
+msgstr ""
+
+#: admin/views/buyers.php
+msgid "Cantidad"
+msgstr ""
+
+#: admin/views/buyers.php
+msgid "Total"
+msgstr ""
+
+#: admin/views/buyers.php
+msgid "Fecha"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Configuración"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Modo de operación"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Local (Base de datos WordPress)"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "API Externa (SaaS)"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "URL de la API"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "API Key"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Guardar Configuración"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "Registro de Actividad"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "Fecha"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "Usuario"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "Acción"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "Tipo"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "Detalles"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "Sistema"
+msgstr ""
+
+#: admin/views/activity-log.php
+msgid "No hay registros de actividad."
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Cupones de Descuento"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Crear Nuevo Cupón"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Código"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Tipo de descuento"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Porcentaje (%)"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Monto fijo ($)"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Valor"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Usos máximos"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Rifa específica (opcional)"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Todas las rifas"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Mínimo de boletos"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Fecha de expiración"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Crear Cupón"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Cupones Existentes"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Descuento"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Usos"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Rifa"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Expira"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Activo"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Inactivo"
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "No hay cupones creados."
+msgstr ""
+
+#: admin/views/coupons.php
+msgid "Eliminar este cupón?"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Webhooks"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Registrar Nuevo Webhook"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Evento"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "URL de destino"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Crear Webhook"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Webhooks Registrados"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Secreto"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Creado"
+msgstr ""
+
+#: admin/views/webhooks.php
+msgid "Eliminar este webhook?"
+msgstr ""
+
+#: public/views/my-tickets.php
+msgid "Mis Boletos"
+msgstr ""
+
+#: public/views/my-tickets.php
+msgid "Tu correo electrónico"
+msgstr ""
+
+#: public/views/my-tickets.php
+msgid "Buscar"
+msgstr ""
+
+#: public/views/my-tickets.php
+msgid "Buscando boletos..."
+msgstr ""
+
+#: public/views/my-tickets.php
+msgid "No se encontraron boletos con este correo."
+msgstr ""
+
+#: public/views/my-tickets.php
+msgid "boletos"
+msgstr ""
+
+#: public/views/my-tickets.php
+msgid "Error al buscar boletos."
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Rifa creada"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Rifa actualizada"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Rifa eliminada"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Sorteo realizado"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Compra completada"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Reserva expirada"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Exportación generada"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Cupón creado"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Cupón utilizado"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Configuración actualizada"
+msgstr ""
+
+#: includes/class-rafflecore-logger.php
+msgid "Webhook enviado"
+msgstr ""
+
+#: modules/webhook/class-webhook-service.php
+msgid "Compra completada"
+msgstr ""
+
+#: modules/webhook/class-webhook-service.php
+msgid "Rifa creada"
+msgstr ""
+
+#: modules/webhook/class-webhook-service.php
+msgid "Rifa agotada"
+msgstr ""
+
+#: modules/webhook/class-webhook-service.php
+msgid "Sorteo realizado"
+msgstr ""
+
+#: modules/webhook/class-webhook-service.php
+msgid "Cupón utilizado"
+msgstr ""
+
+#: modules/email/class-email-service.php
+msgid "Nueva venta de boletos"
+msgstr ""
+
+#: modules/email/class-email-service.php
+msgid "Rifa agotada"
+msgstr ""
+
+#: modules/email/class-email-service.php
+msgid "Sorteo realizado"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Selecciona tu paquete"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "boletos"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Proceder al Pago"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Datos de Compra"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Nombre completo"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Correo electrónico"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Teléfono"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Confirmar Compra"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Procesando..."
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Compra Exitosa"
+msgstr ""
+
+#: public/views/raffle-display.php
+msgid "Tus Números de Boleto"
+msgstr ""
+
+#: blocks/class-rafflecore-block.php
+msgid "Selecciona una rifa en el editor."
+msgstr ""

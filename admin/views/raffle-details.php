@@ -19,9 +19,9 @@ $pkgs     = json_decode( $raffle->packages, true );
             <?php endif; ?>
 
             <div class="rc-detail-meta">
-                <div><strong>Precio:</strong> $<?php echo number_format_i18n( $raffle->ticket_price ); ?></div>
-                <div><strong>Boletos:</strong> <?php echo number_format_i18n( $raffle->sold_tickets ); ?> / <?php echo number_format_i18n( $raffle->total_tickets ); ?></div>
-                <div><strong>Sorteo:</strong> <?php echo $raffle->draw_date ? esc_html( date_i18n( 'd/m/Y H:i', strtotime( $raffle->draw_date ) ) ) : 'No definido'; ?></div>
+                <div><strong><?php esc_html_e( 'Precio:', 'rafflecore' ); ?></strong> $<?php echo number_format_i18n( $raffle->ticket_price ); ?></div>
+                <div><strong><?php esc_html_e( 'Boletos:', 'rafflecore' ); ?></strong> <?php echo number_format_i18n( $raffle->sold_tickets ); ?> / <?php echo number_format_i18n( $raffle->total_tickets ); ?></div>
+                <div><strong><?php esc_html_e( 'Sorteo:', 'rafflecore' ); ?></strong> <?php echo $raffle->draw_date ? esc_html( date_i18n( 'd/m/Y H:i', strtotime( $raffle->draw_date ) ) ) : esc_html__( 'No definido', 'rafflecore' ); ?></div>
                 <div><strong>Shortcode:</strong> <code>[rafflecore id="<?php echo intval( $raffle->id ); ?>"]</code></div>
             </div>
 
@@ -33,7 +33,7 @@ $pkgs     = json_decode( $raffle->packages, true );
 
             <?php if ( is_array( $pkgs ) && count( $pkgs ) > 0 ) : ?>
             <div class="rc-packages-row">
-                <strong>Paquetes:</strong>
+                <strong><?php esc_html_e( 'Paquetes:', 'rafflecore' ); ?></strong>
                 <?php foreach ( $pkgs as $p ) : ?>
                     <span class="rc-package-badge"><?php echo intval( $p['qty'] ); ?> boletos — $<?php echo number_format_i18n( $p['price'] ); ?></span>
                 <?php endforeach; ?>
@@ -41,12 +41,12 @@ $pkgs     = json_decode( $raffle->packages, true );
             <?php endif; ?>
 
             <div class="rc-detail-actions">
-                <a href="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles&action=edit&id=' . $raffle->id ) ); ?>" class="rc-btn rc-btn-warning">✏️ Editar</a>
+                <a href="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles&action=edit&id=' . $raffle->id ) ); ?>" class="rc-btn rc-btn-warning">✏️ <?php esc_html_e( 'Editar', 'rafflecore' ); ?></a>
                 <?php if ( $raffle->status === 'active' && $raffle->sold_tickets > 0 ) : ?>
                     <button type="button" id="rc-draw-btn"
                             data-raffle-id="<?php echo intval( $raffle->id ); ?>"
                             class="rc-btn rc-btn-primary rc-btn-lg">
-                        🎰 Realizar Sorteo
+                        🎰 <?php esc_html_e( 'Realizar Sorteo', 'rafflecore' ); ?>
                     </button>
                 <?php endif; ?>
             </div>
@@ -55,7 +55,7 @@ $pkgs     = json_decode( $raffle->packages, true );
 
     <?php if ( $winner ) : ?>
     <div class="rc-winner-banner">
-        <h2>🏆 ¡Ganador!</h2>
+        <h2>🏆 <?php esc_html_e( '¡Ganador!', 'rafflecore' ); ?></h2>
         <div class="rc-winner-info">
             <span class="rc-winner-ticket">Boleto #<?php echo esc_html( str_pad( $winner->ticket_number, strlen( (string) $raffle->total_tickets ), '0', STR_PAD_LEFT ) ); ?></span>
             <span class="rc-winner-name"><?php echo esc_html( $winner->buyer_name ); ?></span>
@@ -64,28 +64,68 @@ $pkgs     = json_decode( $raffle->packages, true );
     <?php endif; ?>
 
     <div id="rc-draw-result" style="display:none" class="rc-winner-banner">
-        <h2>🏆 ¡Tenemos Ganador!</h2>
+        <h2>🏆 <?php esc_html_e( '¡Tenemos Ganador!', 'rafflecore' ); ?></h2>
         <div class="rc-winner-info">
             <span id="rc-draw-ticket" class="rc-winner-ticket"></span>
             <span id="rc-draw-buyer" class="rc-winner-name"></span>
+            <span id="rc-draw-email" class="rc-winner-email"></span>
+            <span id="rc-draw-notified" style="display:none" class="rc-badge rc-badge-active">✉️ <?php esc_html_e( 'Ganador notificado por email', 'rafflecore' ); ?></span>
         </div>
     </div>
 
+    <?php if ( $raffle->status === 'active' && $raffle->sold_tickets > 0 && ! $winner ) : ?>
+    <div class="rc-panel rc-external-draw-panel" style="margin-top: 30px;">
+        <h2>🎱 <?php esc_html_e( 'Número Ganador Externo (Baloto / Lotería)', 'rafflecore' ); ?></h2>
+        <p class="rc-panel-desc"><?php esc_html_e( 'Ingresa el número ganador de la lotería nacional (ej: últimos 4 dígitos del Baloto). Si coincide con un boleto vendido, se marcará como ganador y se le notificará.', 'rafflecore' ); ?></p>
+
+        <div class="rc-external-draw-form">
+            <div class="rc-form-row">
+                <label for="rc-external-number"><?php esc_html_e( 'Número ganador:', 'rafflecore' ); ?></label>
+                <input type="number" id="rc-external-number" min="1" max="<?php echo intval( $raffle->total_tickets ); ?>"
+                       placeholder="<?php echo esc_attr( sprintf( __( 'Ej: %d', 'rafflecore' ), min( 1234, $raffle->total_tickets ) ) ); ?>"
+                       class="rc-input rc-input-lg">
+            </div>
+
+            <div class="rc-form-row" style="margin-top: 20px;">
+                <label><?php esc_html_e( 'Mensaje para el ganador:', 'rafflecore' ); ?></label>
+                <div class="rc-templates-bar">
+                    <button type="button" class="rc-btn rc-btn-sm rc-template-btn" data-template="congratulations"><?php esc_html_e( '🎉 Felicitaciones', 'rafflecore' ); ?></button>
+                    <button type="button" class="rc-btn rc-btn-sm rc-template-btn" data-template="formal"><?php esc_html_e( '📋 Formal', 'rafflecore' ); ?></button>
+                    <button type="button" class="rc-btn rc-btn-sm rc-template-btn" data-template="claim"><?php esc_html_e( '📦 Reclamar premio', 'rafflecore' ); ?></button>
+                    <button type="button" class="rc-btn rc-btn-sm rc-template-btn" data-template="short"><?php esc_html_e( '⚡ Breve', 'rafflecore' ); ?></button>
+                </div>
+                <textarea id="rc-winner-message" class="rc-textarea" rows="6"
+                          placeholder="<?php esc_attr_e( 'Escribe el mensaje que recibirá el ganador por email. Puedes usar: {nombre}, {rifa}, {boleto}, {premio}, {sitio}', 'rafflecore' ); ?>"></textarea>
+                <p class="rc-help-text">
+                    <?php esc_html_e( 'Variables disponibles:', 'rafflecore' ); ?>
+                    <code>{nombre}</code> <code>{rifa}</code> <code>{boleto}</code> <code>{premio}</code> <code>{sitio}</code>
+                </p>
+            </div>
+
+            <button type="button" id="rc-external-draw-btn"
+                    data-raffle-id="<?php echo intval( $raffle->id ); ?>"
+                    class="rc-btn rc-btn-primary rc-btn-lg" style="margin-top: 16px;">
+                🎱 <?php esc_html_e( 'Buscar y Notificar Ganador', 'rafflecore' ); ?>
+            </button>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="rc-panel" style="margin-top: 30px;">
-        <h2>👥 Compradores de esta Rifa (<?php echo count( $purchases ); ?>)</h2>
+        <h2>👥 <?php echo esc_html( sprintf( __( 'Compradores de esta Rifa (%d)', 'rafflecore' ), count( $purchases ) ) ); ?></h2>
 
         <?php if ( empty( $purchases ) ) : ?>
-            <p class="rc-empty">No hay compradores para esta rifa aún.</p>
+            <p class="rc-empty"><?php esc_html_e( 'No hay compradores para esta rifa aún.', 'rafflecore' ); ?></p>
         <?php else : ?>
         <table class="rc-table">
             <thead>
                 <tr>
-                    <th>Comprador</th>
-                    <th>Email</th>
-                    <th>Cantidad</th>
-                    <th>Estado</th>
-                    <th>Boletos</th>
-                    <th>Fecha</th>
+                    <th><?php esc_html_e( 'Comprador', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'Email', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'Cantidad', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'Estado', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'Boletos', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'Fecha', 'rafflecore' ); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -112,7 +152,7 @@ $pkgs     = json_decode( $raffle->packages, true );
                                 <?php endforeach; ?>
                             </div>
                         <?php else : ?>
-                            <em>Pendiente</em>
+                            <em><?php esc_html_e( 'Pendiente', 'rafflecore' ); ?></em>
                         <?php endif; ?>
                     </td>
                     <td><?php echo esc_html( date_i18n( 'd/m/Y H:i', strtotime( $p->purchase_date ) ) ); ?></td>

@@ -11,9 +11,25 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 class RaffleCore_Activator {
 
-    const DB_VERSION = '2.0.0';
+    const DB_VERSION = '3.3.0';
 
-    public static function activate() {
+    public static function activate( $network_wide = false ) {
+        if ( is_multisite() && $network_wide ) {
+            $sites = get_sites( array( 'fields' => 'ids' ) );
+            foreach ( $sites as $site_id ) {
+                switch_to_blog( $site_id );
+                self::single_activate();
+                restore_current_blog();
+            }
+        } else {
+            self::single_activate();
+        }
+    }
+
+    /**
+     * Activación para un sitio individual.
+     */
+    private static function single_activate() {
         $installed = get_option( 'rafflecore_db_version', '0' );
 
         if ( version_compare( $installed, self::DB_VERSION, '<' ) ) {
@@ -24,6 +40,17 @@ class RaffleCore_Activator {
 
         update_option( 'rafflecore_version', RAFFLECORE_VERSION );
         flush_rewrite_rules();
+    }
+
+    /**
+     * Hook: Crear tablas cuando se añade un nuevo sitio a la red multisite.
+     */
+    public static function on_new_blog( $blog_id ) {
+        if ( is_plugin_active_for_network( RAFFLECORE_BASENAME ) ) {
+            switch_to_blog( $blog_id );
+            self::single_activate();
+            restore_current_blog();
+        }
     }
 
     /**
@@ -56,6 +83,47 @@ class RaffleCore_Activator {
                 $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `wc_product_id` bigint(20) UNSIGNED DEFAULT NULL AFTER `winner_ticket_id`" );
             }
         }
+
+        // v2.0 → v2.1: Añadir lucky_numbers a raffles.
+        if ( version_compare( $from_version, '2.1.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'lucky_numbers', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `lucky_numbers` text DEFAULT NULL AFTER `wc_product_id`" );
+            }
+        }
+
+        // v2.1 → v2.2: Añadir font_family a raffles.
+        if ( version_compare( $from_version, '2.2.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'font_family', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `font_family` varchar(100) DEFAULT '' AFTER `lucky_numbers`" );
+            }
+        }
+
+        // v2.2 → v2.3: Añadir custom_font_url a raffles.
+        if ( version_compare( $from_version, '2.3.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'custom_font_url', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `custom_font_url` varchar(500) DEFAULT '' AFTER `font_family`" );
+            }
+        }
+
+        // v2.3 → v3.0: Añadir prize_gallery a raffles.
+        if ( version_compare( $from_version, '3.0.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'prize_gallery', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `prize_gallery` text DEFAULT NULL AFTER `custom_font_url`" );
+            }
+        }
+
+        // v3.0 → v3.1: Añadir entry_hash a activity_log para cadena de integridad.
+        if ( version_compare( $from_version, '3.1.0', '<' ) ) {
+            $t_log = $wpdb->prefix . 'rc_activity_log';
+            $log_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_log}", 0 );
+            if ( is_array( $log_cols ) && ! in_array( 'entry_hash', $log_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_log} ADD COLUMN `entry_hash` varchar(64) DEFAULT '' AFTER `ip_address`" );
+            }
+        }
     }
 
     /**
@@ -78,6 +146,9 @@ class RaffleCore_Activator {
         $t_raffles   = $wpdb->prefix . 'rc_raffles';
         $t_purchases = $wpdb->prefix . 'rc_purchases';
         $t_tickets   = $wpdb->prefix . 'rc_tickets';
+        $t_log       = $wpdb->prefix . 'rc_activity_log';
+        $t_coupons   = $wpdb->prefix . 'rc_coupons';
+        $t_webhooks  = $wpdb->prefix . 'rc_webhooks';
 
         $sql = "CREATE TABLE {$t_raffles} (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -93,10 +164,15 @@ class RaffleCore_Activator {
             status varchar(20) NOT NULL DEFAULT 'active',
             winner_ticket_id bigint(20) UNSIGNED DEFAULT NULL,
             wc_product_id bigint(20) UNSIGNED DEFAULT NULL,
+            lucky_numbers text DEFAULT NULL,
+            font_family varchar(100) DEFAULT '',
+            custom_font_url varchar(500) DEFAULT '',
+            prize_gallery text DEFAULT NULL,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY status (status),
-            KEY wc_product_id (wc_product_id)
+            KEY wc_product_id (wc_product_id),
+            KEY created_at (created_at)
         ) {$charset};
 
         CREATE TABLE {$t_purchases} (
@@ -113,7 +189,9 @@ class RaffleCore_Activator {
             KEY raffle_id (raffle_id),
             KEY order_id (order_id),
             KEY buyer_email (buyer_email),
-            KEY status (status)
+            KEY status (status),
+            KEY purchase_date (purchase_date),
+            KEY raffle_status (raffle_id, status)
         ) {$charset};
 
         CREATE TABLE {$t_tickets} (
@@ -127,6 +205,52 @@ class RaffleCore_Activator {
             UNIQUE KEY unique_ticket (raffle_id, ticket_number),
             KEY raffle_id (raffle_id),
             KEY purchase_id (purchase_id)
+        ) {$charset};
+
+        CREATE TABLE {$t_log} (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) UNSIGNED DEFAULT 0,
+            action varchar(50) NOT NULL,
+            object_type varchar(50) DEFAULT '',
+            object_id bigint(20) UNSIGNED DEFAULT 0,
+            details text,
+            ip_address varchar(45) DEFAULT '',
+            entry_hash varchar(64) DEFAULT '',
+            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY action (action),
+            KEY created_at (created_at),
+            KEY object_lookup (object_type, object_id)
+        ) {$charset};
+
+        CREATE TABLE {$t_coupons} (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            code varchar(50) NOT NULL,
+            discount_type varchar(20) NOT NULL DEFAULT 'percentage',
+            discount_value decimal(12,2) NOT NULL DEFAULT 0,
+            max_uses int(11) NOT NULL DEFAULT 0,
+            used_count int(11) NOT NULL DEFAULT 0,
+            raffle_id bigint(20) UNSIGNED DEFAULT 0,
+            min_tickets int(11) NOT NULL DEFAULT 0,
+            expires_at datetime DEFAULT NULL,
+            status varchar(20) NOT NULL DEFAULT 'active',
+            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY code (code),
+            KEY status (status),
+            KEY raffle_id (raffle_id)
+        ) {$charset};
+
+        CREATE TABLE {$t_webhooks} (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            event varchar(50) NOT NULL,
+            url varchar(500) NOT NULL,
+            secret varchar(64) NOT NULL,
+            status varchar(20) NOT NULL DEFAULT 'active',
+            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY event (event),
+            KEY status (status)
         ) {$charset};";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';

@@ -235,7 +235,7 @@ echo "\n📌 Test 16: Clases v2.0.0\n";
 rc_assert( class_exists( 'RaffleCore_WC_Product_Manager' ), 'RaffleCore_WC_Product_Manager existe' );
 rc_assert( class_exists( 'RaffleCore_Reservation_Service' ), 'RaffleCore_Reservation_Service existe' );
 rc_assert( class_exists( 'RaffleCore_Activator' ) && defined( 'RaffleCore_Activator::DB_VERSION' ), 'Activator::DB_VERSION definida' );
-rc_assert( RaffleCore_Activator::DB_VERSION === '2.0.0', 'DB_VERSION es 2.0.0' );
+rc_assert( RaffleCore_Activator::DB_VERSION === '3.3.0', 'DB_VERSION es 3.3.0' );
 
 // ─── Test 17: Esquema v2.0.0 — columnas correctas ──────────
 echo "\n📌 Test 17: Esquema v2.0.0\n";

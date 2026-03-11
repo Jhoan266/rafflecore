@@ -39,7 +39,7 @@ class RaffleCore_Purchase_Model {
             '%d', '%s', '%s', '%d', '%f', '%s', '%d', '%s',
         ) );
 
-        return $wpdb->insert_id ?: new WP_Error( 'db_error', 'Error al crear la compra.' );
+        return $wpdb->insert_id ?: new WP_Error( 'db_error', __( 'Error al crear la compra.', 'rafflecore' ) );
     }
 
     public static function update( $id, $data ) {

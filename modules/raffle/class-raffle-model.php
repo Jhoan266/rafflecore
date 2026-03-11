@@ -75,16 +75,18 @@ class RaffleCore_Raffle_Model {
             'packages'      => '[]',
             'draw_date'     => null,
             'status'        => 'active',
+            'font_family'   => '',
+            'custom_font_url' => '',
             'created_at'    => current_time( 'mysql' ),
         );
 
         $data = wp_parse_args( $data, $defaults );
 
         $wpdb->insert( self::table(), $data, array(
-            '%s', '%s', '%f', '%s', '%d', '%d', '%f', '%s', '%s', '%s', '%s',
+            '%s', '%s', '%f', '%s', '%d', '%d', '%f', '%s', '%s', '%s', '%s', '%s', '%s',
         ) );
 
-        return $wpdb->insert_id ?: new WP_Error( 'db_error', 'Error al crear la rifa.' );
+        return $wpdb->insert_id ?: new WP_Error( 'db_error', __( 'Error al crear la rifa.', 'rafflecore' ) );
     }
 
     public static function update( $id, $data ) {

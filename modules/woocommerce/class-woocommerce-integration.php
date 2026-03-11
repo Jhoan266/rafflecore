@@ -35,11 +35,23 @@ class RaffleCore_WooCommerce {
      */
     public function ajax_create_order() {
         if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rc_public_nonce' ) ) {
-            wp_send_json_error( array( 'message' => 'Error de seguridad.' ) );
+            wp_send_json_error( array( 'message' => __( 'Error de seguridad.', 'rafflecore' ) ) );
+        }
+
+        // Honeypot check — campo oculto que bots llenan automáticamente
+        $honeypot = RaffleCore_Rate_Limiter::check_honeypot();
+        if ( is_wp_error( $honeypot ) ) {
+            wp_send_json_error( array( 'message' => $honeypot->get_error_message() ) );
+        }
+
+        // Rate limiting: ventana deslizante + backoff progresivo
+        $rate_check = RaffleCore_Rate_Limiter::check();
+        if ( is_wp_error( $rate_check ) ) {
+            wp_send_json_error( array( 'message' => $rate_check->get_error_message() ) );
         }
 
         if ( ! self::is_available() ) {
-            wp_send_json_error( array( 'message' => 'WooCommerce no está disponible.' ) );
+            wp_send_json_error( array( 'message' => __( 'WooCommerce no está disponible.', 'rafflecore' ) ) );
         }
 
         $raffle_id   = isset( $_POST['raffle_id'] ) ? absint( $_POST['raffle_id'] ) : 0;
@@ -57,7 +69,7 @@ class RaffleCore_WooCommerce {
         }
 
         if ( ! $raffle || $raffle->status !== 'active' ) {
-            wp_send_json_error( array( 'message' => 'Rifa no activa.' ) );
+            wp_send_json_error( array( 'message' => __( 'Rifa no activa.', 'rafflecore' ) ) );
         }
 
         // Calcular precio
@@ -65,6 +77,23 @@ class RaffleCore_WooCommerce {
         $package_price = isset( $_POST['package_price'] ) ? absint( $_POST['package_price'] ) : 0;
         if ( $package_price > 0 ) {
             $total_amount = $package_price;
+        }
+
+        // Aplicar cupón si existe
+        $coupon_code = isset( $_POST['coupon_code'] ) ? sanitize_text_field( wp_unslash( $_POST['coupon_code'] ) ) : '';
+        if ( $coupon_code ) {
+            $coupon_service = new RaffleCore_Coupon_Service();
+            $coupon_result = $coupon_service->validate( $coupon_code, $raffle_id, $quantity );
+            if ( ! is_wp_error( $coupon_result ) ) {
+                $total_amount = $coupon_service->apply_discount( $total_amount, $coupon_result );
+                RaffleCore_Coupon_Model::increment_usage( $coupon_result->id );
+                RaffleCore_Logger::log( 'coupon_used', 'coupon', $coupon_result->id, $coupon_code );
+                RaffleCore_Webhook_Service::fire( 'coupon.used', array(
+                    'code'      => $coupon_code,
+                    'raffle_id' => $raffle_id,
+                    'discount'  => $coupon_result->discount_value,
+                ) );
+            }
         }
 
         // ── PASO 1: Reservar boletos (previene race conditions) ──
@@ -78,7 +107,7 @@ class RaffleCore_WooCommerce {
         if ( is_wp_error( $product_id ) ) {
             // Liberar reserva si falla
             RaffleCore_Reservation_Service::release( $raffle_id, $quantity );
-            wp_send_json_error( array( 'message' => 'Error al preparar producto WC.' ) );
+            wp_send_json_error( array( 'message' => __( 'Error al preparar producto WC.', 'rafflecore' ) ) );
         }
 
         // ── PASO 3: Agregar al carrito ──
@@ -91,7 +120,7 @@ class RaffleCore_WooCommerce {
 
         if ( is_wp_error( $cart_key ) ) {
             RaffleCore_Reservation_Service::release( $raffle_id, $quantity );
-            wp_send_json_error( array( 'message' => 'Error al agregar al carrito.' ) );
+            wp_send_json_error( array( 'message' => __( 'Error al agregar al carrito.', 'rafflecore' ) ) );
         }
 
         // ── PASO 4: Crear registro de compra con status 'reserved' ──
@@ -108,7 +137,7 @@ class RaffleCore_WooCommerce {
         if ( is_wp_error( $purchase_id ) ) {
             RaffleCore_Reservation_Service::release( $raffle_id, $quantity );
             WC()->cart->empty_cart();
-            wp_send_json_error( array( 'message' => 'Error al registrar la compra.' ) );
+            wp_send_json_error( array( 'message' => __( 'Error al registrar la compra.', 'rafflecore' ) ) );
         }
 
         // Guardar purchase_id en sesión WC para vincularlo al pedido después del checkout
@@ -175,7 +204,7 @@ class RaffleCore_WooCommerce {
 
         if ( is_wp_error( $tickets ) ) {
             $wpdb->query( 'ROLLBACK' );
-            $order->add_order_note( 'Error generando boletos: ' . $tickets->get_error_message() );
+            $order->add_order_note( sprintf( __( 'Error generando boletos: %s', 'rafflecore' ), $tickets->get_error_message() ) );
             return;
         }
 
@@ -193,10 +222,31 @@ class RaffleCore_WooCommerce {
         $order->update_meta_data( '_rc_tickets_generated', 'yes' );
         $order->update_meta_data( '_rc_ticket_numbers', $formatted );
         $order->save();
-        $order->add_order_note( 'Boletos generados: ' . implode( ', ', $formatted ) );
+        $order->add_order_note( sprintf( __( 'Boletos generados: %s', 'rafflecore' ), implode( ', ', $formatted ) ) );
 
         // Email
         $this->api->send_purchase_email( $purchase_id, $raffle, $tickets );
+
+        // Admin notification + webhook + log
+        RaffleCore_Email_Service::notify_admin_purchase( $purchase_id, $raffle );
+        RaffleCore_Logger::log( 'purchase_completed', 'purchase', $purchase_id, $buyer_email );
+        RaffleCore_Webhook_Service::fire( 'purchase.completed', array(
+            'purchase_id' => $purchase_id,
+            'raffle_id'   => $raffle_id,
+            'quantity'    => $quantity,
+            'buyer_email' => $buyer_email,
+            'tickets'     => $formatted,
+        ) );
+
+        // Check if sold out
+        $fresh_raffle = $this->api->get_raffle( $raffle_id );
+        if ( $fresh_raffle && (int) $fresh_raffle->sold_tickets >= (int) $fresh_raffle->total_tickets ) {
+            RaffleCore_Email_Service::notify_admin_sold_out( $fresh_raffle );
+            RaffleCore_Webhook_Service::fire( 'raffle.sold_out', array(
+                'raffle_id' => $raffle_id,
+                'title'     => $fresh_raffle->title,
+            ) );
+        }
     }
 
     /**
@@ -247,7 +297,7 @@ class RaffleCore_WooCommerce {
         ) );
 
         if ( ! $raffle ) {
-            return new WP_Error( 'not_found', 'Rifa no encontrada.' );
+            return new WP_Error( 'not_found', __( 'Rifa no encontrada.', 'rafflecore' ) );
         }
 
         $used_numbers = $wpdb->get_col( $wpdb->prepare(
@@ -267,7 +317,7 @@ class RaffleCore_WooCommerce {
         }
 
         if ( count( $pool ) < $quantity ) {
-            return new WP_Error( 'insufficient', 'No hay suficientes números disponibles.' );
+            return new WP_Error( 'insufficient', __( 'No hay suficientes números disponibles.', 'rafflecore' ) );
         }
 
         // Fisher-Yates con CSPRNG
@@ -347,7 +397,7 @@ class RaffleCore_WooCommerce {
 
         if ( ! empty( $tickets ) && is_array( $tickets ) ) {
             echo '<div class="rc-thankyou" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:30px;border-radius:16px;margin:20px 0;text-align:center;">';
-            echo '<h2 style="color:#fff;margin:0 0 8px;">&#127881; ¡Tus Boletos de Rifa!</h2>';
+            echo '<h2 style="color:#fff;margin:0 0 8px;">&#127881; ' . esc_html__( '¡Tus Boletos de Rifa!', 'rafflecore' ) . '</h2>';
             if ( $raffle ) {
                 echo '<p style="opacity:0.9;margin:0 0 16px;">' . esc_html( $raffle->title ) . '</p>';
             }
@@ -356,14 +406,14 @@ class RaffleCore_WooCommerce {
                 echo '<span style="background:rgba(255,255,255,0.2);padding:8px 16px;border-radius:8px;font-weight:700;font-size:18px;">' . esc_html( $ticket ) . '</span>';
             }
             echo '</div>';
-            echo '<p style="opacity:0.8;margin:16px 0 0;font-size:14px;">&#128231; También enviamos un correo con tus números.</p>';
+            echo '<p style="opacity:0.8;margin:16px 0 0;font-size:14px;">&#128231; ' . esc_html__( 'También enviamos un correo con tus números.', 'rafflecore' ) . '</p>';
             echo '</div>';
         } else {
             $status = $order->get_status();
             if ( in_array( $status, array( 'pending', 'on-hold' ), true ) ) {
                 echo '<div style="background:#fff3cd;color:#856404;padding:16px;border-radius:8px;margin:20px 0;">';
-                echo '<p><strong>&#9203; Tu pago está siendo procesado.</strong></p>';
-                echo '<p>Recibirás tus boletos por correo una vez se confirme.</p>';
+                echo '<p><strong>&#9203; ' . esc_html__( 'Tu pago está siendo procesado.', 'rafflecore' ) . '</strong></p>';
+                echo '<p>' . esc_html__( 'Recibirás tus boletos por correo una vez se confirme.', 'rafflecore' ) . '</p>';
                 echo '</div>';
             }
         }
@@ -380,13 +430,13 @@ class RaffleCore_WooCommerce {
         $tickets = $order->get_meta( '_rc_ticket_numbers' );
 
         echo '<div style="border-left:3px solid #667eea;padding-left:12px;margin-top:12px;">';
-        echo '<h3 style="color:#667eea;">&#127903; Datos de Rifa</h3>';
-        echo '<p><strong>Rifa ID:</strong> ' . esc_html( $order->get_meta( '_rc_raffle_id' ) ) . '</p>';
-        echo '<p><strong>Cantidad:</strong> ' . esc_html( $order->get_meta( '_rc_quantity' ) ) . ' boletos</p>';
-        echo '<p><strong>Compra ID:</strong> ' . esc_html( $order->get_meta( '_rc_purchase_id' ) ) . '</p>';
+        echo '<h3 style="color:#667eea;">&#127903; ' . esc_html__( 'Datos de Rifa', 'rafflecore' ) . '</h3>';
+        echo '<p><strong>' . esc_html__( 'Rifa ID:', 'rafflecore' ) . '</strong> ' . esc_html( $order->get_meta( '_rc_raffle_id' ) ) . '</p>';
+        echo '<p><strong>' . esc_html__( 'Cantidad:', 'rafflecore' ) . '</strong> ' . esc_html( $order->get_meta( '_rc_quantity' ) ) . ' ' . esc_html__( 'boletos', 'rafflecore' ) . '</p>';
+        echo '<p><strong>' . esc_html__( 'Compra ID:', 'rafflecore' ) . '</strong> ' . esc_html( $order->get_meta( '_rc_purchase_id' ) ) . '</p>';
 
         if ( ! empty( $tickets ) && is_array( $tickets ) ) {
-            echo '<p><strong>Boletos:</strong> ' . esc_html( implode( ', ', $tickets ) ) . '</p>';
+            echo '<p><strong>' . esc_html__( 'Boletos:', 'rafflecore' ) . '</strong> ' . esc_html( implode( ', ', $tickets ) ) . '</p>';
         }
         echo '</div>';
     }

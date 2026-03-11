@@ -22,7 +22,7 @@ class RaffleCore_WC_Product_Manager {
      */
     public static function ensure_product( $raffle_id, $title, $price = 0 ) {
         if ( ! class_exists( 'WooCommerce' ) ) {
-            return new WP_Error( 'wc_unavailable', 'WooCommerce no está disponible.' );
+            return new WP_Error( 'wc_unavailable', __( 'WooCommerce no está disponible.', 'rafflecore' ) );
         }
 
         // Verificar si ya existe
@@ -33,7 +33,7 @@ class RaffleCore_WC_Product_Manager {
 
         // Crear producto virtual oculto
         $product = new WC_Product_Simple();
-        $product->set_name( 'Boletos — ' . $title );
+        $product->set_name( sprintf( __( 'Boletos — %s', 'rafflecore' ), $title ) );
         $product->set_status( 'publish' );
         $product->set_catalog_visibility( 'hidden' );
         $product->set_virtual( true );
@@ -46,7 +46,7 @@ class RaffleCore_WC_Product_Manager {
         $product_id = $product->save();
 
         if ( ! $product_id ) {
-            return new WP_Error( 'wc_product_error', 'Error al crear el producto WC.' );
+            return new WP_Error( 'wc_product_error', __( 'Error al crear el producto WC.', 'rafflecore' ) );
         }
 
         // Vincular en rc_raffles
@@ -87,7 +87,7 @@ class RaffleCore_WC_Product_Manager {
             return;
         }
 
-        $product->set_name( 'Boletos — ' . $title );
+        $product->set_name( sprintf( __( 'Boletos — %s', 'rafflecore' ), $title ) );
         $product->set_regular_price( (string) $price );
         $product->save();
     }
@@ -118,12 +118,12 @@ class RaffleCore_WC_Product_Manager {
      */
     public static function add_to_cart( $raffle_id, $quantity, $total, $buyer = array() ) {
         if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
-            return new WP_Error( 'wc_unavailable', 'WooCommerce no está disponible.' );
+            return new WP_Error( 'wc_unavailable', __( 'WooCommerce no está disponible.', 'rafflecore' ) );
         }
 
         $product_id = self::get_product_id( $raffle_id );
         if ( ! $product_id ) {
-            return new WP_Error( 'no_product', 'No hay producto WC vinculado a esta rifa.' );
+            return new WP_Error( 'no_product', __( 'No hay producto WC vinculado a esta rifa.', 'rafflecore' ) );
         }
 
         // Limpiar carrito (una compra de rifa a la vez)
@@ -140,7 +140,7 @@ class RaffleCore_WC_Product_Manager {
 
         $key = WC()->cart->add_to_cart( $product_id, 1, 0, array(), $cart_item_data );
 
-        return $key ?: new WP_Error( 'cart_error', 'Error al agregar al carrito.' );
+        return $key ?: new WP_Error( 'cart_error', __( 'Error al agregar al carrito.', 'rafflecore' ) );
     }
 
     /**
@@ -166,7 +166,7 @@ class RaffleCore_WC_Product_Manager {
     public static function display_cart_data( $item_data, $cart_item ) {
         if ( ! empty( $cart_item['_rc_ticket_qty'] ) ) {
             $item_data[] = array(
-                'key'   => 'Boletos',
+                'key'   => __( 'Boletos', 'rafflecore' ),
                 'value' => absint( $cart_item['_rc_ticket_qty'] ),
             );
         }

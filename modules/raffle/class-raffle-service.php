@@ -7,6 +7,51 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class RaffleCore_Raffle_Service {
 
     /**
+     * Catálogo de fuentes disponibles, agrupadas por categoría.
+     * Para agregar una fuente: añadir una línea al grupo correspondiente.
+     * Solo se carga en Google Fonts la fuente elegida → 0 impacto en rendimiento.
+     */
+    public static function get_font_catalog() {
+        return array(
+            'Redondeadas / Divertidas' => array(
+                'Fredoka', 'Baloo 2', 'Comfortaa', 'Quicksand',
+                'Bubblegum Sans', 'Chewy', 'Luckiest Guy', 'Boogaloo',
+            ),
+            'Sans-Serif Modernas' => array(
+                'Poppins', 'Montserrat', 'Inter', 'Rubik', 'Nunito',
+                'Raleway', 'Josefin Sans', 'DM Sans', 'Space Grotesk',
+                'Outfit', 'Sora', 'Lexend', 'Urbanist', 'Plus Jakarta Sans',
+            ),
+            'Display / Impacto' => array(
+                'Bangers', 'Righteous', 'Bungee', 'Permanent Marker',
+                'Lilita One', 'Passion One', 'Anton', 'Bebas Neue',
+                'Russo One', 'Orbitron', 'Press Start 2P',
+            ),
+            'Elegantes / Serif' => array(
+                'Playfair Display', 'Lora', 'Merriweather', 'Cormorant Garamond',
+                'Libre Baskerville', 'Crimson Text',
+            ),
+            'Script / Manuscritas' => array(
+                'Pacifico', 'Dancing Script', 'Lobster', 'Caveat',
+                'Satisfy', 'Great Vibes',
+            ),
+        );
+    }
+
+    /**
+     * Lista plana de nombres de fuentes permitidas.
+     */
+    public static function get_allowed_fonts() {
+        $fonts = array( '' ); // vacío = predeterminada
+        foreach ( self::get_font_catalog() as $group ) {
+            foreach ( $group as $font ) {
+                $fonts[] = $font;
+            }
+        }
+        return $fonts;
+    }
+
+    /**
      * Valida y prepara datos de formulario para crear/editar una rifa.
      */
     public static function prepare_data( $post ) {
@@ -38,6 +83,44 @@ class RaffleCore_Raffle_Service {
             }
         }
         $data['packages'] = wp_json_encode( $packages );
+
+        // Lucky numbers: "12, 345, 6789" → [12, 345, 6789]
+        $lucky_raw = sanitize_text_field( wp_unslash( $post['lucky_numbers'] ?? '' ) );
+        $lucky     = array();
+        if ( ! empty( $lucky_raw ) ) {
+            $parts = array_map( 'trim', explode( ',', $lucky_raw ) );
+            foreach ( $parts as $num ) {
+                $n = absint( $num );
+                if ( $n > 0 ) {
+                    $lucky[] = $n;
+                }
+            }
+        }
+        $data['lucky_numbers'] = wp_json_encode( array_unique( $lucky ) );
+
+        // Font family
+        $font = sanitize_text_field( wp_unslash( $post['font_family'] ?? '' ) );
+        if ( $font === 'custom' ) {
+            $data['font_family'] = 'custom';
+            $data['custom_font_url'] = esc_url_raw( wp_unslash( $post['custom_font_url'] ?? '' ) );
+        } else {
+            $data['font_family'] = in_array( $font, self::get_allowed_fonts(), true ) ? $font : '';
+            $data['custom_font_url'] = '';
+        }
+
+        // Prize gallery: "url1, url2" → ["url1","url2"]
+        $gallery_raw = wp_unslash( $post['prize_gallery'] ?? '' );
+        $gallery     = array();
+        if ( ! empty( $gallery_raw ) ) {
+            $parts = array_map( 'trim', explode( ',', $gallery_raw ) );
+            foreach ( $parts as $url ) {
+                $clean = esc_url_raw( $url );
+                if ( $clean ) {
+                    $gallery[] = $clean;
+                }
+            }
+        }
+        $data['prize_gallery'] = wp_json_encode( $gallery );
 
         return $data;
     }

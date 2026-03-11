@@ -35,12 +35,12 @@ class RaffleCore_Ticket_Service {
         ) );
 
         if ( ! $raffle ) {
-            return new WP_Error( 'not_found', 'Rifa no encontrada.' );
+            return new WP_Error( 'not_found', __( 'Rifa no encontrada.', 'rafflecore' ) );
         }
 
         $available = $raffle->total_tickets - $raffle->sold_tickets;
         if ( $quantity > $available ) {
-            return new WP_Error( 'insufficient', "Solo quedan {$available} boletos disponibles." );
+            return new WP_Error( 'insufficient', sprintf( __( 'Solo quedan %d boletos disponibles.', 'rafflecore' ), $available ) );
         }
 
         // Obtener números ya usados
@@ -61,7 +61,7 @@ class RaffleCore_Ticket_Service {
         }
 
         if ( count( $pool ) < $quantity ) {
-            return new WP_Error( 'insufficient', 'No hay suficientes números disponibles.' );
+            return new WP_Error( 'insufficient', __( 'No hay suficientes números disponibles.', 'rafflecore' ) );
         }
 
         // Fisher-Yates shuffle con CSPRNG (random_int)

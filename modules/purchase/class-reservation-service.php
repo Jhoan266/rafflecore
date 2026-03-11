@@ -46,18 +46,18 @@ class RaffleCore_Reservation_Service {
 
         if ( ! $raffle ) {
             $wpdb->query( 'ROLLBACK' );
-            return new WP_Error( 'not_found', 'Rifa no encontrada.' );
+            return new WP_Error( 'not_found', __( 'Rifa no encontrada.', 'rafflecore' ) );
         }
 
         if ( $raffle->status !== 'active' ) {
             $wpdb->query( 'ROLLBACK' );
-            return new WP_Error( 'inactive', 'La rifa no está activa.' );
+            return new WP_Error( 'inactive', __( 'La rifa no está activa.', 'rafflecore' ) );
         }
 
         $available = $raffle->total_tickets - $raffle->sold_tickets;
         if ( $quantity > $available ) {
             $wpdb->query( 'ROLLBACK' );
-            return new WP_Error( 'insufficient', "Solo quedan {$available} boletos disponibles." );
+            return new WP_Error( 'insufficient', sprintf( __( 'Solo quedan %d boletos disponibles.', 'rafflecore' ), $available ) );
         }
 
         // Incrementar sold_tickets como reserva
@@ -95,7 +95,7 @@ class RaffleCore_Reservation_Service {
 
         if ( ! $raffle ) {
             $wpdb->query( 'ROLLBACK' );
-            return new WP_Error( 'not_found', 'Rifa no encontrada.' );
+            return new WP_Error( 'not_found', __( 'Rifa no encontrada.', 'rafflecore' ) );
         }
 
         // No permitir que sold_tickets baje de 0
@@ -181,7 +181,7 @@ class RaffleCore_Reservation_Service {
     public static function add_cron_interval( $schedules ) {
         $schedules['rc_every_15min'] = array(
             'interval' => 900,
-            'display'  => 'Cada 15 minutos (RaffleCore)',
+            'display'  => __( 'Cada 15 minutos (RaffleCore)', 'rafflecore' ),
         );
         return $schedules;
     }

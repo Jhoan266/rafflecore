@@ -3,7 +3,7 @@
  * Plugin Name: RaffleCore
  * Plugin URI:  https://rafflecore.com
  * Description: Sistema profesional de rifas con WooCommerce. Arquitectura SaaS-ready con API Service layer.
- * Version:     2.0.0
+ * Version:     3.2.0
  * Author:      RaffleCore
  * Text Domain: rafflecore
  * Requires PHP: 7.4
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // ─── Constantes ─────────────────────────────────────────────
-define( 'RAFFLECORE_VERSION',  '2.0.0' );
+define( 'RAFFLECORE_VERSION',  '3.2.0' );
 define( 'RAFFLECORE_PATH',     plugin_dir_path( __FILE__ ) );
 define( 'RAFFLECORE_URL',      plugin_dir_url( __FILE__ ) );
 define( 'RAFFLECORE_BASENAME', plugin_basename( __FILE__ ) );
@@ -44,7 +44,10 @@ require_once RAFFLECORE_PATH . 'includes/class-rafflecore-loader.php';
 require_once RAFFLECORE_PATH . 'includes/class-rafflecore-activator.php';
 require_once RAFFLECORE_PATH . 'includes/class-rafflecore.php';
 
-// API Service (capa de abstracción SaaS-ready)
+// API Service — Provider pattern (SaaS-ready)
+require_once RAFFLECORE_PATH . 'api/interface-data-provider.php';
+require_once RAFFLECORE_PATH . 'api/class-local-provider.php';
+require_once RAFFLECORE_PATH . 'api/class-remote-provider.php';
 require_once RAFFLECORE_PATH . 'api/class-api-service.php';
 
 // Módulos — Model + Service
@@ -60,12 +63,32 @@ require_once RAFFLECORE_PATH . 'modules/woocommerce/class-woocommerce-integratio
 require_once RAFFLECORE_PATH . 'modules/woocommerce/class-wc-product-manager.php';
 require_once RAFFLECORE_PATH . 'modules/purchase/class-reservation-service.php';
 
+// New modules v3.0.0
+require_once RAFFLECORE_PATH . 'includes/class-rafflecore-rate-limiter.php';
+require_once RAFFLECORE_PATH . 'includes/class-rafflecore-logger.php';
+require_once RAFFLECORE_PATH . 'modules/coupon/class-coupon-model.php';
+require_once RAFFLECORE_PATH . 'modules/coupon/class-coupon-service.php';
+require_once RAFFLECORE_PATH . 'modules/webhook/class-webhook-service.php';
+
 // Admin & Public controllers
 require_once RAFFLECORE_PATH . 'admin/class-rafflecore-admin.php';
+require_once RAFFLECORE_PATH . 'admin/class-rafflecore-analytics.php';
+require_once RAFFLECORE_PATH . 'admin/class-rafflecore-export.php';
+require_once RAFFLECORE_PATH . 'admin/class-rafflecore-rest-api.php';
 require_once RAFFLECORE_PATH . 'public/class-rafflecore-public.php';
 
+// Gutenberg Block
+require_once RAFFLECORE_PATH . 'blocks/class-rafflecore-block.php';
+
 // ─── Hooks de ciclo de vida ─────────────────────────────────
-register_activation_hook( __FILE__, array( 'RaffleCore_Activator', 'activate' ) );
+register_activation_hook( __FILE__, function ( $network_wide ) {
+    RaffleCore_Activator::activate( $network_wide );
+} );
+
+// Multisite: crear tablas cuando se añade un nuevo sitio
+add_action( 'wp_initialize_site', function ( $new_site ) {
+    RaffleCore_Activator::on_new_blog( $new_site->blog_id );
+}, 10, 1 );
 
 // Inicialización + auto-migración en upgrades
 add_action( 'plugins_loaded', function () {
@@ -77,4 +100,16 @@ add_action( 'plugins_loaded', function () {
 
     $plugin = new RaffleCore();
     $plugin->run();
+
+    // Analytics AJAX
+    new RaffleCore_Analytics();
+
+    // Export AJAX
+    new RaffleCore_Export();
+
+    // REST API
+    new RaffleCore_REST_API();
+
+    // Gutenberg Block
+    RaffleCore_Block::register();
 } );
