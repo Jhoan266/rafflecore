@@ -1,0 +1,620 @@
+/* ============================================
+   RaffleCore — Admin Styles
+   ============================================ */
+
+:root {
+    --rc-primary: #6c5ce7;
+    --rc-primary-dark: #5a4bd1;
+    --rc-success: #00b894;
+    --rc-warning: #fdcb6e;
+    --rc-danger: #e17055;
+    --rc-info: #0984e3;
+    --rc-dark: #2d3436;
+    --rc-gray: #636e72;
+    --rc-light: #f8f9fa;
+    --rc-border: #e0e0e0;
+    --rc-radius: 10px;
+    --rc-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+}
+
+/* Layout */
+.rc-wrap {
+    max-width: 1200px;
+    padding: 20px 0;
+}
+
+.rc-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--rc-dark);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* ─── Stats Grid ─────────────────────────── */
+.rc-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.rc-stat-card {
+    background: #fff;
+    border-radius: var(--rc-radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--rc-shadow);
+    border-left: 4px solid transparent;
+    transition: transform .2s;
+}
+
+.rc-stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.rc-card-blue {
+    border-left-color: var(--rc-info);
+}
+
+.rc-card-green {
+    border-left-color: var(--rc-success);
+}
+
+.rc-card-purple {
+    border-left-color: var(--rc-primary);
+}
+
+.rc-card-orange {
+    border-left-color: #e17055;
+}
+
+.rc-card-teal {
+    border-left-color: #00cec9;
+}
+
+.rc-card-red {
+    border-left-color: #d63031;
+}
+
+.rc-stat-icon {
+    font-size: 32px;
+}
+
+.rc-stat-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.rc-stat-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--rc-dark);
+    line-height: 1;
+}
+
+.rc-stat-label {
+    font-size: 13px;
+    color: var(--rc-gray);
+    margin-top: 4px;
+}
+
+/* ─── Panels ─────────────────────────────── */
+.rc-panel {
+    background: #fff;
+    border-radius: var(--rc-radius);
+    padding: 24px;
+    box-shadow: var(--rc-shadow);
+    margin-bottom: 20px;
+}
+
+.rc-panel h2 {
+    font-size: 18px;
+    margin: 0 0 16px;
+    color: var(--rc-dark);
+}
+
+.rc-dashboard-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.rc-panel-wide {
+    grid-column: 1;
+}
+
+.rc-panel-narrow {
+    grid-column: 2;
+}
+
+@media (max-width: 900px) {
+    .rc-dashboard-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Tables ─────────────────────────────── */
+.rc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.rc-table th {
+    background: var(--rc-light);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--rc-dark);
+    border-bottom: 2px solid var(--rc-border);
+    white-space: nowrap;
+}
+
+.rc-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rc-border);
+    vertical-align: middle;
+}
+
+.rc-table tbody tr:hover {
+    background: #f7f7ff;
+}
+
+.rc-empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--rc-gray);
+}
+
+/* ─── Badges ─────────────────────────────── */
+.rc-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.rc-badge-active,
+.rc-badge-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.rc-badge-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.rc-badge-paused {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.rc-badge-finished {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.rc-badge-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ─── Buttons ────────────────────────────── */
+.rc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s;
+    white-space: nowrap;
+}
+
+.rc-btn-sm {
+    padding: 5px 10px;
+    font-size: 13px;
+}
+
+.rc-btn-lg {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.rc-btn-primary {
+    background: var(--rc-primary);
+    color: #fff;
+}
+
+.rc-btn-primary:hover {
+    background: var(--rc-primary-dark);
+    color: #fff;
+}
+
+.rc-btn-secondary {
+    background: var(--rc-light);
+    color: var(--rc-dark);
+    border: 1px solid var(--rc-border);
+}
+
+.rc-btn-secondary:hover {
+    background: #e9ecef;
+    color: var(--rc-dark);
+}
+
+.rc-btn-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.rc-btn-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.rc-btn-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.rc-btn-danger:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* ─── Progress Bar ───────────────────────── */
+.rc-progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.rc-progress-lg {
+    height: 26px;
+    margin: 10px 0;
+}
+
+.rc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rc-primary), var(--rc-success));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: fit-content;
+    padding: 0 8px;
+    transition: width .5s ease;
+}
+
+/* ─── Forms ──────────────────────────────── */
+.rc-form {
+    max-width: 800px;
+}
+
+.rc-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.rc-col-full {
+    grid-column: 1 / -1;
+}
+
+.rc-form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--rc-dark);
+}
+
+.rc-form-group input[type="text"],
+.rc-form-group input[type="number"],
+.rc-form-group input[type="url"],
+.rc-form-group input[type="password"],
+.rc-form-group input[type="datetime-local"],
+.rc-form-group textarea,
+.rc-form-group select,
+.rc-input,
+.rc-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--rc-border);
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color .2s;
+}
+
+.rc-form-group input:focus,
+.rc-form-group textarea:focus,
+.rc-form-group select:focus {
+    border-color: var(--rc-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, .15);
+}
+
+.rc-help {
+    font-size: 12px;
+    color: var(--rc-gray);
+    margin-top: 4px;
+}
+
+.rc-form-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+}
+
+/* ─── Image Upload ───────────────────────── */
+.rc-image-upload {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.rc-image-preview {
+    width: 150px;
+    height: 100px;
+    border: 2px dashed var(--rc-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--rc-light);
+    color: var(--rc-gray);
+}
+
+.rc-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ─── Thumbnail ──────────────────────────── */
+.rc-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.rc-thumb-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rc-light);
+    font-size: 24px;
+}
+
+/* ─── Raffle Details ─────────────────────── */
+.rc-detail-header {
+    display: flex;
+    gap: 24px;
+    background: #fff;
+    border-radius: var(--rc-radius);
+    padding: 24px;
+    box-shadow: var(--rc-shadow);
+    margin-bottom: 20px;
+}
+
+.rc-detail-image {
+    width: 280px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.rc-detail-info {
+    flex: 1;
+}
+
+.rc-detail-desc {
+    color: var(--rc-gray);
+    margin-bottom: 12px;
+}
+
+.rc-detail-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.rc-detail-meta code {
+    background: #f1f1f1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.rc-detail-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.rc-packages-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.rc-package-badge {
+    background: #f0edff;
+    color: var(--rc-primary);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ─── Winner Banner ──────────────────────── */
+.rc-winner-banner {
+    background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+    border-radius: var(--rc-radius);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.rc-winner-banner h2 {
+    color: #2d3436;
+    margin: 0 0 12px;
+    font-size: 22px;
+}
+
+.rc-winner-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.rc-winner-ticket {
+    background: #fff;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--rc-primary);
+}
+
+.rc-winner-name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* ─── Ticket Badges ──────────────────────── */
+.rc-ticket-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.rc-ticket-badge {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: monospace;
+}
+
+/* ─── Filters ────────────────────────────── */
+.rc-filters {
+    margin-bottom: 20px;
+}
+
+.rc-filter-form {
+    display: flex;
+}
+
+.rc-filter-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.rc-filter-group .rc-input {
+    width: 250px;
+}
+
+.rc-filter-group .rc-select {
+    width: 200px;
+}
+
+/* ─── Pagination ─────────────────────────── */
+.rc-pagination {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.rc-page-current {
+    padding: 6px 12px;
+    background: var(--rc-primary);
+    color: #fff;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.rc-page-link {
+    padding: 6px 12px;
+    background: #fff;
+    color: var(--rc-dark);
+    border: 1px solid var(--rc-border);
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.rc-page-link:hover {
+    background: var(--rc-light);
+}
+
+/* ─── Quick Actions ──────────────────────── */
+.rc-quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rc-quick-actions .rc-btn {
+    justify-content: center;
+}
+
+/* ─── Info Table (Settings) ──────────────── */
+.rc-info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rc-info-table th {
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    width: 200px;
+    color: var(--rc-gray);
+    border-bottom: 1px solid var(--rc-border);
+}
+
+.rc-info-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rc-border);
+}
+
+/* ─── Actions Column ─────────────────────── */
+.rc-actions {
+    white-space: nowrap;
+    display: flex;
+    gap: 4px;
+}

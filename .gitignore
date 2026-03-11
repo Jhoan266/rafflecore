@@ -1,0 +1,18 @@
+# WordPress
+wp-content/uploads/
+wp-content/upgrade/
+
+# Dependencies
+node_modules/
+vendor/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
