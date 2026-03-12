@@ -41,6 +41,7 @@ class RaffleCore {
             $this->loader->add_action( 'woocommerce_payment_complete', $wc, 'on_payment_complete' );
             $this->loader->add_action( 'woocommerce_order_status_completed', $wc, 'on_payment_complete' );
             $this->loader->add_action( 'woocommerce_order_status_processing', $wc, 'on_payment_complete' );
+            $this->loader->add_action( 'woocommerce_order_status_on-hold', $wc, 'on_payment_complete' );
             $this->loader->add_action( 'woocommerce_order_status_cancelled', $wc, 'on_order_cancelled' );
             $this->loader->add_action( 'woocommerce_order_status_failed', $wc, 'on_order_cancelled' );
             $this->loader->add_action( 'woocommerce_thankyou', $wc, 'thankyou_page' );

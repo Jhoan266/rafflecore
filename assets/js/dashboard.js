@@ -2,15 +2,19 @@
   "use strict";
 
   var charts = {};
+
+  /* ── Updated color palette (matches new theme) ── */
   var chartColors = {
-    blue: "rgba(0, 156, 255, ##)",
-    green: "rgba(0, 184, 148, ##)",
-    orange: "rgba(225, 112, 85, ##)",
-    red: "rgba(214, 48, 49, ##)",
-    purple: "rgba(162, 155, 254, ##)",
-    teal: "rgba(0, 206, 201, ##)",
-    pink: "rgba(232, 67, 147, ##)",
-    yellow: "rgba(243, 156, 18, ##)",
+    blue: "rgba(59, 130, 246, ##)",
+    green: "rgba(52, 211, 153, ##)",
+    orange: "rgba(248, 113, 113, ##)",
+    red: "rgba(220, 38, 38, ##)",
+    purple: "rgba(167, 139, 250, ##)",
+    teal: "rgba(45, 212, 191, ##)",
+    pink: "rgba(244, 114, 182, ##)",
+    yellow: "rgba(251, 191, 36, ##)",
+    indigo: "rgba(99, 102, 241, ##)",
+    cyan: "rgba(56, 189, 248, ##)",
   };
 
   var colorKeys = Object.keys(chartColors);
@@ -37,20 +41,90 @@
     return str.length > len ? str.substring(0, len) + "…" : str;
   }
 
-  // Chart.js global defaults — dark theme
-  Chart.defaults.color = "#8a8f9c";
-  Chart.defaults.font.family = "'Heebo', sans-serif";
-  Chart.defaults.plugins.legend.labels.usePointStyle = true;
-  Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
-  Chart.defaults.scale.grid = { color: "rgba(255,255,255,.06)" };
+  /* ── Theme-aware Chart.js defaults ────────── */
+  function isDarkTheme() {
+    return !document.querySelector(".rc-theme-light");
+  }
+
+  function getGridColor() {
+    return isDarkTheme()
+      ? "rgba(255, 255, 255, .06)"
+      : "rgba(0, 0, 0, .06)";
+  }
+
+  function getTextColor() {
+    return isDarkTheme() ? "#9ca3b4" : "#64748b";
+  }
+
+  function applyChartDefaults() {
+    Chart.defaults.color = getTextColor();
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 12;
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
+    Chart.defaults.plugins.legend.labels.padding = 16;
+    Chart.defaults.scale.grid = { color: getGridColor() };
+    Chart.defaults.plugins.tooltip.backgroundColor = isDarkTheme()
+      ? "rgba(15, 17, 23, .95)"
+      : "rgba(15, 23, 42, .90)";
+    Chart.defaults.plugins.tooltip.titleFont = {
+      family: "'Inter', sans-serif",
+      size: 13,
+      weight: "600",
+    };
+    Chart.defaults.plugins.tooltip.bodyFont = {
+      family: "'Inter', sans-serif",
+      size: 12,
+    };
+    Chart.defaults.plugins.tooltip.padding = 12;
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
+    Chart.defaults.plugins.tooltip.displayColors = true;
+    Chart.defaults.plugins.tooltip.boxPadding = 4;
+  }
+
+  applyChartDefaults();
+
+  // Re-apply defaults when theme changes
+  var themeObserver = new MutationObserver(function () {
+    applyChartDefaults();
+    // Redraw all charts
+    Object.keys(charts).forEach(function (key) {
+      if (charts[key]) {
+        charts[key].options.scales &&
+          Object.keys(charts[key].options.scales).forEach(function (axis) {
+            if (charts[key].options.scales[axis].grid) {
+              charts[key].options.scales[axis].grid.color = getGridColor();
+            }
+            if (charts[key].options.scales[axis].ticks) {
+              charts[key].options.scales[axis].ticks.color = getTextColor();
+            }
+          });
+        charts[key].update("none");
+      }
+    });
+  });
+
+  var wrapEl = document.querySelector(".rc-wrap");
+  if (wrapEl) {
+    themeObserver.observe(wrapEl, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  }
 
   function ajax(type, extra) {
+    var raffleId = $("#rc-raffle-filter").val() || 0;
     var params = $.extend(
-      { action: "rc_analytics_data", nonce: rcDashboard.nonce, type: type },
+      { action: "rc_analytics_data", nonce: rcDashboard.nonce, type: type, raffle_id: raffleId },
       extra || {},
     );
     return $.getJSON(rcDashboard.ajax_url, params);
   }
+
+  // Refresh when filter changes
+  $("#rc-raffle-filter").on("change", function () {
+    $("#rc-refresh-dashboard").trigger("click");
+  });
 
   /* ── KPIs ─────────────────────────────── */
   function loadOverview() {
@@ -60,7 +134,7 @@
       $("#kpi-revenue").text(formatMoney(d.total_revenue));
       $("#kpi-net-profit")
         .text(formatMoney(d.net_profit))
-        .css("color", d.net_profit >= 0 ? "#00d2a4" : "#e17055");
+        .css("color", d.net_profit >= 0 ? "#34d399" : "#f87171");
       $("#kpi-tickets").text(
         d.total_tickets_sold.toLocaleString("es-CO") +
           " / " +
@@ -119,11 +193,12 @@
               backgroundColor: bg,
               borderColor: border,
               borderWidth: 2,
-              borderRadius: 6,
+              borderRadius: 8,
             },
           ],
         },
         options: {
+          indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
@@ -131,19 +206,25 @@
             tooltip: {
               callbacks: {
                 label: function (ctx) {
-                  return formatMoney(ctx.raw);
+                  return " " + formatMoney(ctx.raw);
                 },
               },
             },
           },
           scales: {
-            y: {
+            x: {
               beginAtZero: true,
+              grid: { color: getGridColor() },
               ticks: {
+                color: getTextColor(),
                 callback: function (v) {
                   return formatMoney(v);
                 },
               },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: getTextColor() },
             },
           },
         },
@@ -192,8 +273,17 @@
           maintainAspectRatio: false,
           plugins: { legend: { position: "bottom" } },
           scales: {
-            x: { stacked: true, beginAtZero: true },
-            y: { stacked: true },
+            x: {
+              stacked: true,
+              beginAtZero: true,
+              grid: { color: getGridColor() },
+              ticks: { color: getTextColor() },
+            },
+            y: {
+              stacked: true,
+              grid: { display: false },
+              ticks: { color: getTextColor() },
+            },
           },
         },
       });
@@ -230,11 +320,12 @@
               backgroundColor: bg,
               borderColor: border,
               borderWidth: 2,
-              borderRadius: 6,
+              borderRadius: 8,
             },
           ],
         },
         options: {
+          indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
@@ -242,18 +333,25 @@
             tooltip: {
               callbacks: {
                 label: function (ctx) {
-                  return formatMoney(ctx.raw);
+                  return " " + formatMoney(ctx.raw);
                 },
               },
             },
           },
           scales: {
-            y: {
+            x: {
+              beginAtZero: true,
+              grid: { color: getGridColor() },
               ticks: {
+                color: getTextColor(),
                 callback: function (v) {
                   return formatMoney(v);
                 },
               },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: getTextColor() },
             },
           },
         },
@@ -278,7 +376,13 @@
       });
 
       if (charts.trend) charts.trend.destroy();
-      charts.trend = new Chart($("#chart-sales-trend")[0], {
+
+      var ctx = $("#chart-sales-trend")[0].getContext("2d");
+      var gradient = ctx.createLinearGradient(0, 0, 0, 280);
+      gradient.addColorStop(0, rgba("blue", 0.2));
+      gradient.addColorStop(1, rgba("blue", 0.01));
+
+      charts.trend = new Chart(ctx, {
         type: "line",
         data: {
           labels: labels,
@@ -287,22 +391,261 @@
               label: rcDashboard.i18n.revenue,
               data: revenue,
               borderColor: rgba("blue", 1),
-              backgroundColor: rgba("blue", 0.08),
+              backgroundColor: gradient,
               fill: true,
-              tension: 0.35,
+              tension: 0.4,
               pointBackgroundColor: rgba("blue", 1),
+              pointBorderColor: isDarkTheme() ? "#1a1d2e" : "#fff",
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              yAxisID: "y",
+              _tickets: tickets, // Attach meta data for tooltip
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: { 
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  var dataIndex = ctx.dataIndex;
+                  var tkts = ctx.dataset._tickets[dataIndex];
+                  return " " + formatMoney(ctx.raw) + " | " + tkts + " " + rcDashboard.i18n.tickets.toLowerCase();
+                },
+              },
+            },
+          },
+          scales: {
+            y: {
+              type: "linear",
+              position: "left",
+              beginAtZero: true,
+              grid: { color: getGridColor() },
+              ticks: {
+                color: getTextColor(),
+                callback: function (v) {
+                  return formatMoney(v);
+                },
+              },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: getTextColor() },
+            },
+          },
+        },
+      });
+    });
+  }
+
+  /* ── Revenue vs Prize (doughnut) ──────── */
+  function loadRevenueVsPrize() {
+    ajax("revenue_vs_prize").done(function (res) {
+      if (!res.success) return;
+      var d = res.data;
+
+      var labels = [rcDashboard.i18n.profit, rcDashboard.i18n.prizes];
+      var values = [d.net_profit, d.total_prize];
+      var bgColors = [rgba("green", 0.85), rgba("yellow", 0.85)];
+      var borderColors = [rgba("green", 1), rgba("yellow", 1)];
+
+      if (d.deficit > 0) {
+        labels.push(rcDashboard.i18n.deficit);
+        values = [0, d.total_prize, d.deficit];
+        bgColors.push(rgba("red", 0.85));
+        borderColors.push(rgba("red", 1));
+      }
+
+      if (charts.revenueVsPrize) charts.revenueVsPrize.destroy();
+      charts.revenueVsPrize = new Chart(
+        $("#chart-revenue-vs-prize")[0],
+        {
+          type: "doughnut",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                data: values,
+                backgroundColor: bgColors,
+                borderColor: borderColors,
+                borderWidth: 2,
+                hoverOffset: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "80%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  padding: 16,
+                  color: getTextColor(),
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    var total = ctx.dataset.data.reduce(function (a, b) {
+                      return a + b;
+                    }, 0);
+                    var pct =
+                      total > 0
+                        ? ((ctx.raw / total) * 100).toFixed(1) + "%"
+                        : "0%";
+                    return " " + ctx.label + ": " + formatMoney(ctx.raw) + " (" + pct + ")";
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+    });
+  }
+
+  /* ── Package Popularity (horizontal bar) ─ */
+  function loadPackagePopularity() {
+    ajax("package_popularity").done(function (res) {
+      if (!res.success) return;
+      var data = res.data;
+
+      if (!data.length) return;
+
+      var labels = data.map(function (r) {
+        return r.package_size + " " + rcDashboard.i18n.packages;
+      });
+      var values = data.map(function (r) {
+        return parseInt(r.purchases, 10);
+      });
+      var bg = data.map(function (_, i) {
+        return colorAt(i, 0.75);
+      });
+      var border = data.map(function (_, i) {
+        return colorAt(i, 1);
+      });
+
+      if (charts.packages) charts.packages.destroy();
+      charts.packages = new Chart($("#chart-package-popularity")[0], {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: rcDashboard.i18n.purchases,
+              data: values,
+              backgroundColor: bg,
+              borderColor: border,
+              borderWidth: 2,
+              borderRadius: 8,
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  return (
+                    " " +
+                    ctx.raw +
+                    " " +
+                    rcDashboard.i18n.purchases.toLowerCase()
+                  );
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: { color: getGridColor() },
+              ticks: { color: getTextColor() },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: getTextColor() },
+            },
+          },
+        },
+      });
+    });
+  }
+
+  /* ── Cumulative Revenue (area chart) ──── */
+  function loadCumulativeRevenue() {
+    ajax("cumulative_revenue").done(function (res) {
+      if (!res.success) return;
+      var data = res.data;
+
+      if (!data.length) return;
+
+      var labels = data.map(function (r) {
+        return r.date_label;
+      });
+      var cumulative = data.map(function (r) {
+        return parseFloat(r.cumulative);
+      });
+      var daily = data.map(function (r) {
+        return parseFloat(r.daily_revenue);
+      });
+
+      if (charts.cumulative) charts.cumulative.destroy();
+
+      var ctx = $("#chart-cumulative-revenue")[0].getContext("2d");
+      var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, rgba("indigo", 0.25));
+      gradient.addColorStop(1, rgba("indigo", 0.02));
+
+      var gradient2 = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient2.addColorStop(0, rgba("teal", 0.15));
+      gradient2.addColorStop(1, rgba("teal", 0.01));
+
+      charts.cumulative = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: rcDashboard.i18n.cumulative,
+              data: cumulative,
+              borderColor: rgba("indigo", 1),
+              backgroundColor: gradient,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: rgba("indigo", 1),
+              pointBorderColor: isDarkTheme() ? "#1a1d2e" : "#fff",
+              pointBorderWidth: 2,
               pointRadius: 4,
+              pointHoverRadius: 6,
+              borderWidth: 2.5,
               yAxisID: "y",
             },
             {
-              label: rcDashboard.i18n.tickets,
-              data: tickets,
-              borderColor: rgba("green", 1),
-              backgroundColor: "transparent",
-              borderDash: [5, 5],
-              tension: 0.35,
-              pointBackgroundColor: rgba("green", 1),
-              pointRadius: 4,
+              label: rcDashboard.i18n.dailyRevenue,
+              data: daily,
+              borderColor: rgba("teal", 1),
+              backgroundColor: gradient2,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: rgba("teal", 1),
+              pointBorderColor: isDarkTheme() ? "#1a1d2e" : "#fff",
+              pointBorderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              borderDash: [4, 3],
               yAxisID: "y1",
             },
           ],
@@ -317,7 +660,9 @@
               type: "linear",
               position: "left",
               beginAtZero: true,
+              grid: { color: getGridColor() },
               ticks: {
+                color: getTextColor(),
                 callback: function (v) {
                   return formatMoney(v);
                 },
@@ -328,6 +673,16 @@
               position: "right",
               beginAtZero: true,
               grid: { drawOnChartArea: false },
+              ticks: {
+                color: getTextColor(),
+                callback: function (v) {
+                  return formatMoney(v);
+                },
+              },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: getTextColor(), maxRotation: 45 },
             },
           },
         },
@@ -437,6 +792,9 @@
     loadSalesTrend("daily");
     loadTopBuyers();
     loadRecentTransactions();
+    loadRevenueVsPrize();
+    loadPackagePopularity();
+    loadCumulativeRevenue();
   }
 
   $(function () {

@@ -36,7 +36,7 @@ class RaffleCore_Purchase_Model {
         $data = wp_parse_args( $data, $defaults );
 
         $wpdb->insert( self::table(), $data, array(
-            '%d', '%s', '%s', '%d', '%f', '%s', '%d', '%s',
+            '%d', '%s', '%s', '%d', '%f', '%d', '%s', '%s',
         ) );
 
         return $wpdb->insert_id ?: new WP_Error( 'db_error', __( 'Error al crear la compra.', 'rafflecore' ) );

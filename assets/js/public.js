@@ -254,10 +254,10 @@
         rcPublic.nonce +
         extraData,
       success: function (res) {
-        if (res.success && res.data.pay_url) {
-          window.location.href = res.data.pay_url;
+        if (res.success && res.data.checkout_url) {
+          window.location.href = res.data.checkout_url;
         } else {
-          alert(res.data || rcPublic.i18n.orderError);
+          alert((res.data && res.data.message) || rcPublic.i18n.orderError);
           $btn.show();
           $loader.hide();
         }
@@ -284,7 +284,7 @@
           $("#rc-purchase-modal").hide();
           showConfirmation(res.data.tickets);
         } else {
-          alert(res.data || rcPublic.i18n.purchaseError);
+          alert((res.data && res.data.message) || rcPublic.i18n.purchaseError);
           $btn.show();
         }
       },

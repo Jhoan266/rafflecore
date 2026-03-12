@@ -1,11 +1,24 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
 
 <div class="wrap rc-wrap">
-    <div class="rc-dash-header">
-        <h1 class="rc-title">📊 <?php esc_html_e( 'RaffleCore — Dashboard Analítico', 'rafflecore' ); ?></h1>
-        <button id="rc-refresh-dashboard" class="rc-btn rc-btn-secondary rc-btn-sm">
-            🔄 <?php esc_html_e( 'Actualizar', 'rafflecore' ); ?>
-        </button>
+    <div class="rc-dash-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <h1 class="rc-title" style="margin: 0;">📊 <?php esc_html_e( 'RaffleCore — Dashboard Analítico', 'rafflecore' ); ?></h1>
+        
+        <div class="rc-dash-actions" style="display: flex; gap: 10px; align-items: center;">
+            <select id="rc-raffle-filter" class="rc-form-control rc-select" style="min-width: 250px;">
+                <option value="0"><?php esc_html_e( 'Resumen Global (Todas las rifas)', 'rafflecore' ); ?></option>
+                <?php
+                global $wpdb;
+                $raffles = $wpdb->get_results( "SELECT id, title FROM {$wpdb->prefix}rc_raffles WHERE status != 'deleted' ORDER BY created_at DESC" );
+                foreach ( $raffles as $r ) {
+                    echo '<option value="' . esc_attr( $r->id ) . '">' . esc_html( $r->title ) . '</option>';
+                }
+                ?>
+            </select>
+            <button id="rc-refresh-dashboard" class="rc-btn rc-btn-secondary rc-btn-sm">
+                🔄 <?php esc_html_e( 'Actualizar', 'rafflecore' ); ?>
+            </button>
+        </div>
     </div>
 
     <!-- KPI Cards -->
@@ -136,6 +149,32 @@
                     <tr><td colspan="5" class="rc-empty">⏳ <?php esc_html_e( 'Cargando...', 'rafflecore' ); ?></td></tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <!-- Charts Row 3: Revenue vs Prize + Package Popularity -->
+    <div class="rc-dashboard-row rc-row-equal">
+        <div class="rc-panel">
+            <h2>💎 <?php esc_html_e( 'Distribución Financiera', 'rafflecore' ); ?></h2>
+            <p class="rc-chart-subtitle"><?php esc_html_e( 'Ingresos destinados a premios vs ganancia neta', 'rafflecore' ); ?></p>
+            <div class="rc-chart-container" style="height:280px;">
+                <canvas id="chart-revenue-vs-prize"></canvas>
+            </div>
+        </div>
+        <div class="rc-panel">
+            <h2>📦 <?php esc_html_e( 'Popularidad de Paquetes', 'rafflecore' ); ?></h2>
+            <p class="rc-chart-subtitle"><?php esc_html_e( 'Qué paquetes de boletos se venden más', 'rafflecore' ); ?></p>
+            <div class="rc-chart-container" style="height:280px;">
+                <canvas id="chart-package-popularity"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 4: Cumulative Revenue (full width) -->
+    <div class="rc-panel">
+        <h2>💰 <?php esc_html_e( 'Ingresos Acumulados', 'rafflecore' ); ?></h2>
+        <p class="rc-chart-subtitle"><?php esc_html_e( 'Crecimiento total del negocio en el tiempo', 'rafflecore' ); ?></p>
+        <div class="rc-chart-container">
+            <canvas id="chart-cumulative-revenue"></canvas>
         </div>
     </div>
 

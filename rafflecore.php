@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // ─── Constantes ─────────────────────────────────────────────
-define( 'RAFFLECORE_VERSION',  '3.2.0' );
+define( 'RAFFLECORE_VERSION', defined('WP_DEBUG') && WP_DEBUG ? '3.2.0-' . time() : '3.2.0' );
 define( 'RAFFLECORE_PATH',     plugin_dir_path( __FILE__ ) );
 define( 'RAFFLECORE_URL',      plugin_dir_url( __FILE__ ) );
 define( 'RAFFLECORE_BASENAME', plugin_basename( __FILE__ ) );

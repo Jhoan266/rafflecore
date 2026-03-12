@@ -16,3 +16,9 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Debug / temp files
+seeder.php
+test_db.php
+public/fix-purchases.php
+public/test-purchases.php

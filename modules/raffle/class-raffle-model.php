@@ -31,7 +31,7 @@ class RaffleCore_Raffle_Model {
         global $wpdb;
         $table = self::table();
 
-        $where  = '1=1';
+        $where  = "status != 'deleted'";
         $params = array();
 
         if ( ! empty( $args['status'] ) ) {
@@ -58,7 +58,7 @@ class RaffleCore_Raffle_Model {
                 $status
             ) );
         }
-        return (int) $wpdb->get_var( "SELECT COUNT(*) FROM " . self::table() );
+        return (int) $wpdb->get_var( "SELECT COUNT(*) FROM " . self::table() . " WHERE status != 'deleted'" );
     }
 
     public static function create( $data ) {
@@ -108,15 +108,13 @@ class RaffleCore_Raffle_Model {
 
     public static function delete( $id ) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix;
-
-        $wpdb->query( 'START TRANSACTION' );
-        $wpdb->delete( $table_prefix . 'rc_tickets', array( 'raffle_id' => $id ), array( '%d' ) );
-        $wpdb->delete( $table_prefix . 'rc_purchases', array( 'raffle_id' => $id ), array( '%d' ) );
-        $wpdb->delete( $table_prefix . 'rc_raffles', array( 'id' => $id ), array( '%d' ) );
-        $wpdb->query( 'COMMIT' );
-
-        return true;
+        return $wpdb->update(
+            self::table(),
+            array( 'status' => 'deleted' ),
+            array( 'id' => $id ),
+            array( '%s' ),
+            array( '%d' )
+        );
     }
 
     public static function find_active( $id ) {
