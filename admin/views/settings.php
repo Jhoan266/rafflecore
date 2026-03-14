@@ -46,6 +46,20 @@
         </div>
 
         <div class="rc-panel">
+            <h2>🎨 <?php esc_html_e( 'Tema de Visualización', 'rafflecore' ); ?></h2>
+            <p class="rc-help"><?php esc_html_e( 'Elige el diseño que verán los visitantes en la página pública de cada rifa.', 'rafflecore' ); ?></p>
+            <div class="rc-form-grid">
+                <div class="rc-form-group">
+                    <label for="rc_display_theme"><?php esc_html_e( 'Tema de escritorio', 'rafflecore' ); ?></label>
+                    <select id="rc_display_theme" name="rc_display_theme" class="rc-select">
+                        <option value="theme1" <?php selected( get_option( 'rafflecore_display_theme', 'theme1' ), 'theme1' ); ?>><?php esc_html_e( 'Tema 1 — Layout 2 columnas (predeterminado)', 'rafflecore' ); ?></option>
+                        <option value="theme2" <?php selected( get_option( 'rafflecore_display_theme', 'theme1' ), 'theme2' ); ?>><?php esc_html_e( 'Tema 2 — Layout columna simple', 'rafflecore' ); ?></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="rc-panel">
             <h2>🌍 <?php esc_html_e( 'Moneda y Conversión', 'rafflecore' ); ?></h2>
             <p class="rc-help"><?php esc_html_e( 'Configura la moneda base de tu tienda y la moneda de visualización en el dashboard. Si son diferentes, el panel convertirá los valores automáticamente usando métricas interbancarias actualizadas.', 'rafflecore' ); ?></p>
 

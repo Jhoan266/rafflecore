@@ -41,7 +41,7 @@ class RaffleCore_Email_Service {
                     <table style=\"width:100%;border-collapse:collapse;\">
                         <tr><td style=\"padding:6px 0;color:#666;\">Rifa:</td><td style=\"text-align:right;font-weight:600;\">" . esc_html( $raffle->title ) . "</td></tr>
                         <tr><td style=\"padding:6px 0;color:#666;\">Cantidad:</td><td style=\"text-align:right;font-weight:600;\">" . esc_html( $purchase->quantity ) . " boletos</td></tr>
-                        <tr><td style=\"padding:6px 0;color:#666;\">Total:</td><td style=\"text-align:right;font-weight:600;\">$" . number_format( $purchase->total_amount, 2 ) . "</td></tr>
+                        <tr><td style=\"padding:6px 0;color:#666;\">Total:</td><td style=\"text-align:right;font-weight:600;\">$" . number_format( $purchase->amount_paid, 2 ) . "</td></tr>
                         <tr><td style=\"padding:6px 0;color:#666;\">Sorteo:</td><td style=\"text-align:right;font-weight:600;\">" . esc_html( $draw_date ) . "</td></tr>
                     </table>
                 </div>

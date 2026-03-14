@@ -77,15 +77,17 @@
                             </td>
                             <td><?php echo esc_html( date_i18n( 'd/m/Y H:i', strtotime( $wh->created_at ) ) ); ?></td>
                             <td>
-                                <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=rc-webhooks' ) ); ?>" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e( '¿Eliminar este webhook?', 'rafflecore' ); ?>')">
-                                    <?php wp_nonce_field( 'rc_delete_webhook' ); ?>
-                                    <input type="hidden" name="rc_action" value="delete_webhook">
-                                    <input type="hidden" name="id" value="<?php echo intval( $wh->id ); ?>">
-                                    <button type="submit" class="rc-btn rc-btn-sm rc-btn-danger"
-                                       aria-label="<?php echo esc_attr( sprintf( __( 'Eliminar webhook %s', 'rafflecore' ), $wh->url ) ); ?>">
-                                        <?php esc_html_e( 'Eliminar', 'rafflecore' ); ?>
-                                    </button>
-                                </form>
+                                <div class="rc-actions-wrap">
+                                    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=rc-webhooks' ) ); ?>" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e( '¿Eliminar este webhook?', 'rafflecore' ); ?>')">
+                                        <?php wp_nonce_field( 'rc_delete_webhook' ); ?>
+                                        <input type="hidden" name="rc_action" value="delete_webhook">
+                                        <input type="hidden" name="id" value="<?php echo intval( $wh->id ); ?>">
+                                        <button type="submit" class="rc-btn rc-btn-sm rc-btn-danger"
+                                           aria-label="<?php echo esc_attr( sprintf( __( 'Eliminar webhook %s', 'rafflecore' ), $wh->url ) ); ?>">
+                                            <?php esc_html_e( 'Eliminar', 'rafflecore' ); ?>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

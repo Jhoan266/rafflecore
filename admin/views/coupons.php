@@ -123,15 +123,17 @@
                                 </span>
                             </td>
                             <td>
-                                <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=rc-coupons' ) ); ?>" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e( '¿Eliminar este cupón?', 'rafflecore' ); ?>')">
-                                    <?php wp_nonce_field( 'rc_delete_coupon' ); ?>
-                                    <input type="hidden" name="rc_action" value="delete_coupon">
-                                    <input type="hidden" name="id" value="<?php echo intval( $coupon->id ); ?>">
-                                    <button type="submit" class="rc-btn rc-btn-sm rc-btn-danger"
-                                       aria-label="<?php echo esc_attr( sprintf( __( 'Eliminar cupón %s', 'rafflecore' ), $coupon->code ) ); ?>">
-                                        <?php esc_html_e( 'Eliminar', 'rafflecore' ); ?>
-                                    </button>
-                                </form>
+                                <div class="rc-actions-wrap">
+                                    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=rc-coupons' ) ); ?>" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e( '¿Eliminar este cupón?', 'rafflecore' ); ?>')">
+                                        <?php wp_nonce_field( 'rc_delete_coupon' ); ?>
+                                        <input type="hidden" name="rc_action" value="delete_coupon">
+                                        <input type="hidden" name="id" value="<?php echo intval( $coupon->id ); ?>">
+                                        <button type="submit" class="rc-btn rc-btn-sm rc-btn-danger"
+                                           aria-label="<?php echo esc_attr( sprintf( __( 'Eliminar cupón %s', 'rafflecore' ), $coupon->code ) ); ?>">
+                                            <?php esc_html_e( 'Eliminar', 'rafflecore' ); ?>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

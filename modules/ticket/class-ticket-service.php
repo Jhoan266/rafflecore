@@ -25,9 +25,11 @@ class RaffleCore_Ticket_Service {
     public static function generate( $raffle_id, $purchase_id, $quantity, $buyer_email, $specific_numbers = array() ) {
         global $wpdb;
 
-        $t_raffles = $wpdb->prefix . 'rc_tickets'; // Error en código original, corregido abajo
         $t_raffles = $wpdb->prefix . 'rc_raffles';
         $t_tickets = $wpdb->prefix . 'rc_tickets';
+
+        // Transacción + Lock: prevenir race conditions
+        $wpdb->query( 'START TRANSACTION' );
 
         // Lock: obtener rifa con FOR UPDATE
         $raffle = $wpdb->get_row( $wpdb->prepare(
@@ -36,6 +38,7 @@ class RaffleCore_Ticket_Service {
         ) );
 
         if ( ! $raffle ) {
+            $wpdb->query( 'ROLLBACK' );
             return new WP_Error( 'not_found', __( 'Rifa no encontrada.', 'rafflecore' ) );
         }
 
@@ -46,6 +49,7 @@ class RaffleCore_Ticket_Service {
 
         $available = $raffle->total_tickets - $raffle->sold_tickets;
         if ( $quantity > $available ) {
+            $wpdb->query( 'ROLLBACK' );
             return new WP_Error( 'insufficient', sprintf( __( 'Solo quedan %d boletos disponibles.', 'rafflecore' ), $available ) );
         }
 
@@ -63,15 +67,18 @@ class RaffleCore_Ticket_Service {
             foreach ( $specific_numbers as $num ) {
                 $num = (int) $num;
                 if ( $num < $min_ticket || $num > $max_ticket ) {
+                    $wpdb->query( 'ROLLBACK' );
                     return new WP_Error( 'invalid_range', sprintf( __( 'Número %d fuera de rango para %d dígitos.', 'rafflecore' ), $num, $digits ) );
                 }
                 if ( isset( $used_set[ $num ] ) ) {
+                    $wpdb->query( 'ROLLBACK' );
                     return new WP_Error( 'already_sold', sprintf( __( 'El número %d ya ha sido vendido.', 'rafflecore' ), $num ) );
                 }
                 $tickets[] = $num;
             }
             // Validar que la cantidad coincida
             if ( count( $tickets ) !== (int) $quantity ) {
+                 $wpdb->query( 'ROLLBACK' );
                  return new WP_Error( 'mismatch', __( 'La cantidad de números no coincide con la compra.', 'rafflecore' ) );
             }
         } else {
@@ -83,6 +90,7 @@ class RaffleCore_Ticket_Service {
                 }
             }
             if ( count( $pool ) < $quantity ) {
+                $wpdb->query( 'ROLLBACK' );
                 return new WP_Error( 'insufficient', __( 'No hay suficientes números disponibles.', 'rafflecore' ) );
             }
             // Fisher-Yates shuffle con CSPRNG (random_int)
@@ -114,6 +122,8 @@ class RaffleCore_Ticket_Service {
             $quantity,
             $raffle_id
         ) );
+
+        $wpdb->query( 'COMMIT' );
 
         return $tickets;
     }

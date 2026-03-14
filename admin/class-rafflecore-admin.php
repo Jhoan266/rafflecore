@@ -13,6 +13,7 @@ class RaffleCore_Admin {
     }
 
     public function add_menus() {
+        $this->check_database_updates();
         add_menu_page(
             'RaffleCore',
             'RaffleCore',
@@ -99,10 +100,7 @@ class RaffleCore_Admin {
     public function handle_form() {
         // Save raffle
         if ( isset( $_POST['rc_save_raffle'] ) ) {
-            if ( isset( $_GET['debug'] ) ) die( print_r( $_POST, true ) );
-            RaffleCore_Logger::log( 'debug', 'system', 0, 'Form submission detected: rc_save_raffle' );
             if ( ! current_user_can( 'manage_options' ) ) {
-                RaffleCore_Logger::log( 'debug', 'system', 0, 'Permission denied for user' );
                 return;
             }
             if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rc_nonce'] ?? '' ) ), 'rc_save_raffle' ) ) {
@@ -112,26 +110,30 @@ class RaffleCore_Admin {
             $raffle_id = isset( $_POST['raffle_id'] ) ? absint( $_POST['raffle_id'] ) : 0;
             $data      = RaffleCore_Raffle_Service::prepare_data( $_POST, $raffle_id );
 
-            error_log( "[RaffleCore] Handling form for Raffle ID: $raffle_id. Title: " . $data['title'] );
+            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                error_log( "[RaffleCore] Handling form for Raffle ID: $raffle_id. Title: " . $data['title'] );
+            }
 
             if ( $raffle_id ) {
-                RaffleCore_Logger::log( 'debug', 'system', 0, 'Updating raffle ID: ' . $raffle_id );
                 $result = $this->api->update_raffle( $raffle_id, $data );
                 if ( false === $result ) {
                     $msg = __( 'Error al actualizar la rifa en la base de datos.', 'rafflecore' );
-                    RaffleCore_Logger::log( 'debug', 'system', $raffle_id, 'Update failed strictly: result === false' );
-                    error_log( "[RaffleCore] Update failed strictly for ID $raffle_id" );
+                    if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                        error_log( "[RaffleCore] Update failed strictly for ID $raffle_id" );
+                    }
                     wp_die( $msg );
                 }
                 if ( is_wp_error( $result ) ) {
                     $msg = $result->get_error_message();
-                    RaffleCore_Logger::log( 'debug', 'system', $raffle_id, 'Update failed (WP_Error): ' . $msg );
-                    error_log( "[RaffleCore] Update failed (WP_Error) for ID $raffle_id: $msg" );
+                    if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                        error_log( "[RaffleCore] Update failed (WP_Error) for ID $raffle_id: $msg" );
+                    }
                     wp_die( $msg );
                 }
-                
-                RaffleCore_Logger::log( 'debug', 'system', $raffle_id, 'Update successful (or no changes detected)' );
-                error_log( "[RaffleCore] Update successful for ID $raffle_id" );
+
+                if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                    error_log( "[RaffleCore] Update successful for ID $raffle_id" );
+                }
                 RaffleCore_Logger::log( 'raffle_updated', 'raffle', $raffle_id, $data['title'] );
             } else {
                 $new_id = $this->api->create_raffle( $data );
@@ -173,6 +175,12 @@ class RaffleCore_Admin {
             update_option( 'rafflecore_mode', sanitize_text_field( wp_unslash( $_POST['rc_mode'] ?? 'local' ) ) );
             update_option( 'rafflecore_api_url', esc_url_raw( wp_unslash( $_POST['rc_api_url'] ?? '' ) ) );
             update_option( 'rafflecore_api_key', sanitize_text_field( wp_unslash( $_POST['rc_api_key'] ?? '' ) ) );
+
+            $allowed_themes = array( 'theme1', 'theme2' );
+            $display_theme  = sanitize_text_field( wp_unslash( $_POST['rc_display_theme'] ?? 'theme1' ) );
+            if ( in_array( $display_theme, $allowed_themes, true ) ) {
+                update_option( 'rafflecore_display_theme', $display_theme );
+            }
 
             $allowed_currencies = array( 'COP', 'USD', 'EUR', 'MXN', 'ARS', 'BRL', 'PEN', 'CLP', 'VES' );
             
@@ -358,10 +366,24 @@ class RaffleCore_Admin {
         $url   = esc_url_raw( wp_unslash( $_POST['webhook_url'] ?? '' ) );
 
         if ( $event && $url ) {
-            RaffleCore_Webhook_Service::create( $event, $url );
+            RaffleCore_Webhook_Service::create( array( 'event' => $event, 'url' => $url ) );
         }
 
         wp_safe_redirect( admin_url( 'admin.php?page=rc-webhooks&msg=webhook_saved' ) );
         exit;
+    }
+
+    public function check_database_updates() {
+        global $wpdb;
+        $t_raffles = $wpdb->prefix . 'rc_raffles';
+        
+        if ( get_transient( 'rc_db_updated_lottery_v3' ) ) return;
+
+        $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+        if ( is_array( $raffle_cols ) && ! in_array( 'lottery', $raffle_cols, true ) ) {
+            $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `lottery` varchar(255) DEFAULT '' AFTER `description`" );
+        }
+        
+        set_transient( 'rc_db_updated_lottery_v3', true, DAY_IN_SECONDS );
     }
 }

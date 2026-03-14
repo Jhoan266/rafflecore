@@ -33,6 +33,8 @@
                     new Intl.NumberFormat().format(d.ticket_price),
                 );
             }
+            // Actualizar stat vendidos (theme2)
+            $(".rc-t2-stat-number").text(new Intl.NumberFormat().format(d.sold_tickets));
             // Actualizar máximo del selector de cantidad
             $(".rc-qty-input").attr("max", d.available);
 
@@ -58,7 +60,7 @@
 
   // ─── Number Selection Logic ─────────────
   var selectedNumbers = [];
-  var ticketPrice = parseFloat($(".rc-progress-detail-number").eq(2).text().replace(/[^0-9.]/g, "")) || 0;
+  var ticketPrice = parseFloat($(".rc-raffle").data("ticket-price")) || 0;
 
   $(document).on("click", ".rc-ticket--available", function () {
     var $box = $(this);
@@ -149,13 +151,18 @@
   $(document).on("click", ".rc-qty-minus", function () {
     var $inp = $(this).siblings(".rc-qty-input");
     var val = parseInt($inp.val(), 10);
-    if (val > 1) $inp.val(val - 1);
+    var min = parseInt($inp.attr("min"), 10) || 1;
+    if (val > min) {
+      $inp.val(val - 1).trigger("change");
+    }
   });
   $(document).on("click", ".rc-qty-plus", function () {
     var $inp = $(this).siblings(".rc-qty-input");
     var val = parseInt($inp.val(), 10);
     var max = parseInt($inp.attr("max"), 10);
-    if (val < max) $inp.val(val + 1);
+    if (val < max) {
+      $inp.val(val + 1).trigger("change");
+    }
   });
   $(document).on("click", ".rc-single-buy .rc-btn-package", function (e) {
     e.preventDefault();
@@ -376,40 +383,35 @@
   }
 
   // ─── Custom Quantity Purchase ───────────
-  var $customInput = $("#rc-custom-qty-input");
-  if ($customInput.length) {
-    var customPrice = parseInt($customInput.data("price"), 10) || 0;
-    var customMin = parseInt($customInput.data("min"), 10) || 1;
+  $(document).on("input change", "#rc-custom-qty-input", function () {
+    var $inp = $(this);
+    var price = parseInt($inp.data("price"), 10) || 0;
+    var min = parseInt($inp.data("min"), 10) || 1;
+    var val = parseInt($inp.val(), 10) || min;
+    if (val < min) { val = min; $inp.val(val); }
+    $("#rc-custom-total-price").text(
+      rcPublic.currency + new Intl.NumberFormat().format(val * price)
+    );
+  });
 
-    $customInput.on("input change", function () {
-      var val = parseInt($(this).val(), 10) || 0;
-      if (val < customMin) val = customMin;
-      var total = val * customPrice;
-      $("#rc-custom-total-price").text(
-        rcPublic.currency + new Intl.NumberFormat().format(total),
+  $(document).on("click", "#rc-custom-buy-btn", function (e) {
+    e.preventDefault();
+    var $inp = $("#rc-custom-qty-input");
+    var unitPrice = parseInt($inp.data("price"), 10) || 0;
+    var min = parseInt($inp.data("min"), 10) || 1;
+    var qty = parseInt($inp.val(), 10) || 0;
+    if (qty < min) {
+      alert(
+        rcPublic.i18n && rcPublic.i18n.minQty
+          ? rcPublic.i18n.minQty.replace("%d", min)
+          : "Mínimo " + min + " boletos"
       );
-    });
-
-    $(document).on("click", "#rc-custom-buy-btn", function (e) {
-      e.preventDefault();
-      var qty = parseInt($customInput.val(), 10) || 0;
-      if (qty < customMin) {
-        alert(
-          rcPublic.i18n.minQty
-            ? rcPublic.i18n.minQty.replace("%d", customMin)
-            : "Mínimo " + customMin + " boletos",
-        );
-        return;
-      }
-      var max = parseInt($customInput.attr("max"), 10);
-      if (qty > max) {
-        $customInput.val(max);
-        qty = max;
-      }
-      var price = qty * customPrice;
-      openPurchaseModal(qty, price);
-    });
-  }
+      return;
+    }
+    var max = parseInt($inp.attr("max"), 10);
+    if (qty > max) { $inp.val(max); qty = max; }
+    openPurchaseModal(qty, qty * unitPrice);
+  });
 
   // ─── Coupon Code Validation ────────────
   $(document).on("click", "#rc-apply-coupon", function (e) {

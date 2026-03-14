@@ -66,21 +66,23 @@ class RaffleCore {
         // Reservation cleanup cron
         $this->loader->add_filter( 'cron_schedules', 'RaffleCore_Reservation_Service', 'add_cron_interval' );
         $this->loader->add_action( 'rc_cleanup_reservations', 'RaffleCore_Reservation_Service', 'cleanup_expired' );
-        RaffleCore_Reservation_Service::schedule_cleanup();
 
         // Transaction cleanup cron (30 days)
         $this->loader->add_action( 'rc_cleanup_old_transactions', $this, 'cleanup_old_transactions' );
-        if ( ! wp_next_scheduled( 'rc_cleanup_old_transactions' ) ) {
-            wp_schedule_event( time(), 'daily', 'rc_cleanup_old_transactions' );
-        }
 
         // Export AJAX endpoints
         $this->loader->add_action( 'wp_ajax_rc_export_buyers', 'RaffleCore_Export', 'ajax_export_buyers' );
         $this->loader->add_action( 'wp_ajax_rc_export_tickets', 'RaffleCore_Export', 'ajax_export_tickets' );
         $this->loader->add_action( 'wp_ajax_rc_export_transactions', 'RaffleCore_Export', 'ajax_export_transactions' );
 
-        // Execute all hooks
+        // Execute all hooks (registers filters/actions including cron_schedules)
         $this->loader->run();
+
+        // Schedule cron events AFTER loader->run() so custom intervals are registered
+        RaffleCore_Reservation_Service::schedule_cleanup();
+        if ( ! wp_next_scheduled( 'rc_cleanup_old_transactions' ) ) {
+            wp_schedule_event( time(), 'daily', 'rc_cleanup_old_transactions' );
+        }
 
         // Allow font file uploads
         add_filter( 'upload_mimes', array( $this, 'allow_font_mimes' ) );

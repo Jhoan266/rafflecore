@@ -42,6 +42,13 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
                           placeholder="<?php esc_attr_e( 'Descripción detallada del premio...', 'rafflecore' ); ?>"><?php echo $is_edit ? esc_textarea( $raffle->description ) : ''; ?></textarea>
             </div>
 
+            <div class="rc-form-group rc-col-full">
+                <label for="rc_lottery"><?php esc_html_e( 'Lotería', 'rafflecore' ); ?></label>
+                <input type="text" id="rc_lottery" name="lottery"
+                       value="<?php echo $is_edit ? esc_attr( $raffle->lottery ?? '' ) : ''; ?>"
+                       placeholder="<?php esc_attr_e( 'Ej: Para este jueves con Quindio', 'rafflecore' ); ?>">
+            </div>
+
 
             <div class="rc-form-group">
                 <label for="rc_ticket_digits"><?php esc_html_e( 'Cantidad de Dígitos del Boleto', 'rafflecore' ); ?> *</label>
@@ -158,6 +165,8 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
                     <option value="ocean" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'ocean' ); ?>>🌊 <?php esc_html_e( 'Océano (Azul / Turquesa)', 'rafflecore' ); ?></option>
                     <option value="sunset" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'sunset' ); ?>>🌅 <?php esc_html_e( 'Atardecer (Naranja / Dorado)', 'rafflecore' ); ?></option>
                     <option value="neon" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'neon' ); ?>>⚡ <?php esc_html_e( 'Neón (Verde / Lima)', 'rafflecore' ); ?></option>
+                    <option value="galaxy" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'galaxy' ); ?>>🌌 <?php esc_html_e( 'Galaxy (Morado / Magenta)', 'rafflecore' ); ?></option>
+                    <option value="matte-fusion" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'matte-fusion' ); ?>>✨ <?php esc_html_e( 'Matte Fusion (Navy / Difuminado)', 'rafflecore' ); ?></option>
                 </select>
                 <p class="rc-help"><?php esc_html_e( 'Esquema de colores que se aplicará al frontend de esta rifa.', 'rafflecore' ); ?></p>
             </div>

@@ -73,11 +73,14 @@ class RaffleCore_WooCommerce {
             wp_send_json_error( array( 'message' => __( 'Rifa no activa.', 'rafflecore' ) ) );
         }
 
-        // Calcular precio
-        $total_amount = $quantity * $raffle->ticket_price;
-        $package_price = isset( $_POST['package_price'] ) ? absint( $_POST['package_price'] ) : 0;
-        if ( $package_price > 0 ) {
-            $total_amount = $package_price;
+        // Calcular precio — NUNCA confiar en el precio del frontend
+        $total_amount  = $quantity * $raffle->ticket_price;
+        $packages      = RaffleCore_Raffle_Service::get_available_packages( $raffle );
+        foreach ( $packages as $pkg ) {
+            if ( (int) $pkg['qty'] === $quantity && isset( $pkg['price'] ) ) {
+                $total_amount = (int) $pkg['price'];
+                break;
+            }
         }
 
         // Aplicar cupón si existe

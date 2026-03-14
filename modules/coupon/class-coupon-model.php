@@ -55,10 +55,11 @@ class RaffleCore_Coupon_Model {
 
     public static function increment_usage( $id ) {
         global $wpdb;
-        $wpdb->query( $wpdb->prepare(
-            "UPDATE " . self::table() . " SET used_count = used_count + 1 WHERE id = %d",
+        $rows = $wpdb->query( $wpdb->prepare(
+            "UPDATE " . self::table() . " SET used_count = used_count + 1 WHERE id = %d AND (max_uses = 0 OR used_count < max_uses)",
             $id
         ) );
+        return $rows > 0;
     }
 
     public static function get_all( $args = array() ) {

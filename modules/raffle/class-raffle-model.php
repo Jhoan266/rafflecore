@@ -67,6 +67,7 @@ class RaffleCore_Raffle_Model {
         $defaults = array(
             'title'               => '',
             'description'         => '',
+            'lottery'             => '',
             'prize_value'         => 0,
             'prize_image'         => '',
             'total_tickets'       => 0,
@@ -97,6 +98,7 @@ class RaffleCore_Raffle_Model {
         $formats = array(
             'title'               => '%s',
             'description'         => '%s',
+            'lottery'             => '%s',
             'prize_value'         => '%f',
             'prize_image'         => '%s',
             'total_tickets'       => '%d',
@@ -140,6 +142,7 @@ class RaffleCore_Raffle_Model {
         $all_formats = array(
             'title'               => '%s',
             'description'         => '%s',
+            'lottery'             => '%s',
             'prize_value'         => '%f',
             'prize_image'         => '%s',
             'total_tickets'       => '%d',

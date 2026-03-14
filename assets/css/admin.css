@@ -612,7 +612,7 @@
 /* ─── Tables ─────────────────────────────── */
 .rc-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: collapse !important;
     font-size: 14px;
 }
 
@@ -630,8 +630,8 @@
 }
 
 .rc-table td {
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--rc-border);
+    padding: 18px 14px;
+    border-bottom: 1px solid var(--rc-border) !important;
     vertical-align: middle;
     color: var(--rc-text);
 }
@@ -652,13 +652,17 @@
 
 /* ─── Action buttons in tables ────────────── */
 .rc-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    padding-top: 36px !important;
     white-space: nowrap;
 }
 
-.rc-actions form {
+.rc-actions-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rc-actions-wrap form {
     display: contents;
 }
 

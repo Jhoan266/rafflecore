@@ -60,6 +60,7 @@ class RaffleCore_Raffle_Service {
         $data = array(
             'title'         => sanitize_text_field( wp_unslash( $post['title'] ?? '' ) ),
             'description'   => sanitize_textarea_field( wp_unslash( $post['description'] ?? '' ) ),
+            'lottery'       => sanitize_text_field( wp_unslash( $post['lottery'] ?? '' ) ),
             'prize_value'   => floatval( $post['prize_value'] ?? 0 ),
             'prize_image'   => esc_url_raw( wp_unslash( $post['prize_image'] ?? '' ) ),
             'total_tickets' => ( $raffle_id && ! isset( $post['ticket_digits'] ) ) ? 0 : $max_tickets, // 0 means don't update in DB if not provided
@@ -114,7 +115,7 @@ class RaffleCore_Raffle_Service {
         }
 
         // Color palette
-        $allowed_palettes = array( '', 'vibrant', 'ocean', 'sunset', 'neon' );
+        $allowed_palettes = array( '', 'vibrant', 'ocean', 'sunset', 'neon', 'galaxy', 'matte-fusion' );
         $palette = sanitize_text_field( wp_unslash( $post['color_palette'] ?? '' ) );
         $data['color_palette'] = in_array( $palette, $allowed_palettes, true ) ? $palette : '';
 

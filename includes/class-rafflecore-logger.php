@@ -114,10 +114,6 @@ class RaffleCore_Logger {
     }
 
     private static function get_ip() {
-        if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-            $ips = explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
-            return trim( $ips[0] );
-        }
         return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
     }
 
@@ -151,27 +147,35 @@ class RaffleCore_Logger {
      */
     public static function verify_integrity() {
         global $wpdb;
-        $table = self::table();
-
-        $entries = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY id ASC" );
-
-        if ( empty( $entries ) ) {
-            return true;
-        }
-
+        $table    = self::table();
+        $batch    = 500;
+        $offset   = 0;
         $prev_hash  = '0';
         $corrupted  = array();
 
-        foreach ( $entries as $entry ) {
-            $hash_payload = $prev_hash . '|' . $entry->user_id . '|' . $entry->action . '|' . $entry->object_type . '|' . $entry->object_id . '|' . $entry->details . '|' . $entry->ip_address . '|' . $entry->created_at;
-            $expected     = hash( 'sha256', $hash_payload );
+        do {
+            $entries = $wpdb->get_results( $wpdb->prepare(
+                "SELECT * FROM {$table} ORDER BY id ASC LIMIT %d OFFSET %d",
+                $batch, $offset
+            ) );
 
-            if ( $entry->entry_hash !== $expected ) {
-                $corrupted[] = (int) $entry->id;
+            if ( empty( $entries ) ) {
+                break;
             }
 
-            $prev_hash = $entry->entry_hash;
-        }
+            foreach ( $entries as $entry ) {
+                $hash_payload = $prev_hash . '|' . $entry->user_id . '|' . $entry->action . '|' . $entry->object_type . '|' . $entry->object_id . '|' . $entry->details . '|' . $entry->ip_address . '|' . $entry->created_at;
+                $expected     = hash( 'sha256', $hash_payload );
+
+                if ( $entry->entry_hash !== $expected ) {
+                    $corrupted[] = (int) $entry->id;
+                }
+
+                $prev_hash = $entry->entry_hash;
+            }
+
+            $offset += $batch;
+        } while ( count( $entries ) === $batch );
 
         return empty( $corrupted ) ? true : $corrupted;
     }

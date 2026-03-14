@@ -364,11 +364,12 @@ class RaffleCore_Analytics {
                      JOIN {$pfx}rc_raffles r ON r.id = p.raffle_id
                      WHERE {$where}
                      ORDER BY p.purchase_date DESC
-                     LIMIT {$per_page} OFFSET {$offset}";
+                     LIMIT %d OFFSET %d";
 
-        $rows = empty( $params )
-            ? $wpdb->get_results( $data_sql )
-            : $wpdb->get_results( $wpdb->prepare( $data_sql, $params ) );
+        $params[] = $per_page;
+        $params[] = $offset;
+
+        $rows = $wpdb->get_results( $wpdb->prepare( $data_sql, $params ) );
 
         foreach ( $rows as $row ) {
             $row->amount_paid = $this->convert( $row->amount_paid );

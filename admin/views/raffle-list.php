@@ -67,14 +67,16 @@
                     </td>
                     <td><?php echo $r->draw_date ? esc_html( date_i18n( 'd/m/Y', strtotime( $r->draw_date ) ) ) : '—'; ?></td>
                     <td class="rc-actions">
-                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles&action=view&id=' . $r->id ) ); ?>" class="rc-btn rc-btn-sm rc-btn-info" title="<?php esc_attr_e( 'Ver detalles', 'rafflecore' ); ?>">👁️</a>
-                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles&action=edit&id=' . $r->id ) ); ?>" class="rc-btn rc-btn-sm rc-btn-warning" title="<?php esc_attr_e( 'Editar', 'rafflecore' ); ?>">✏️</a>
-                        <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles' ) ); ?>" style="display:inline;" onsubmit="return confirm('<?php echo esc_js( __( '¿Eliminar esta rifa y todos sus datos?', 'rafflecore' ) ); ?>')">
-                            <?php wp_nonce_field( 'rc_delete_raffle' ); ?>
-                            <input type="hidden" name="rc_action" value="delete">
-                            <input type="hidden" name="id" value="<?php echo intval( $r->id ); ?>">
-                            <button type="submit" class="rc-btn rc-btn-sm rc-btn-danger" title="<?php esc_attr_e( 'Eliminar', 'rafflecore' ); ?>">🗑️</button>
-                        </form>
+                        <div class="rc-actions-wrap">
+                            <a href="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles&action=view&id=' . $r->id ) ); ?>" class="rc-btn rc-btn-sm rc-btn-info" title="<?php esc_attr_e( 'Ver detalles', 'rafflecore' ); ?>">👁️</a>
+                            <a href="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles&action=edit&id=' . $r->id ) ); ?>" class="rc-btn rc-btn-sm rc-btn-warning" title="<?php esc_attr_e( 'Editar', 'rafflecore' ); ?>">✏️</a>
+                            <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles' ) ); ?>" style="display:inline;" onsubmit="return confirm('<?php echo esc_js( __( '¿Eliminar esta rifa y todos sus datos?', 'rafflecore' ) ); ?>')">
+                                <?php wp_nonce_field( 'rc_delete_raffle' ); ?>
+                                <input type="hidden" name="rc_action" value="delete">
+                                <input type="hidden" name="id" value="<?php echo intval( $r->id ); ?>">
+                                <button type="submit" class="rc-btn rc-btn-sm rc-btn-danger" title="<?php esc_attr_e( 'Eliminar', 'rafflecore' ); ?>">🗑️</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>

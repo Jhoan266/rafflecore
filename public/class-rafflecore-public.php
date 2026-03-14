@@ -98,8 +98,13 @@ class RaffleCore_Public {
         $progress = RaffleCore_Raffle_Service::get_progress( $raffle );
         $packages = RaffleCore_Raffle_Service::get_available_packages( $raffle );
 
+        $theme     = get_option( 'rafflecore_display_theme', 'theme1' );
+        $view_file = ( $theme === 'theme2' )
+            ? RAFFLECORE_PATH . 'public/views/raffle-display-theme2.php'
+            : RAFFLECORE_PATH . 'public/views/raffle-display.php';
+
         ob_start();
-        include RAFFLECORE_PATH . 'public/views/raffle-display.php';
+        include $view_file;
         return ob_get_clean();
     }
 

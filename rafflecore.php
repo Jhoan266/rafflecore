@@ -86,6 +86,11 @@ register_activation_hook( __FILE__, function ( $network_wide ) {
     RaffleCore_Activator::activate( $network_wide );
 } );
 
+register_deactivation_hook( __FILE__, function () {
+    wp_clear_scheduled_hook( 'rc_cleanup_reservations' );
+    wp_clear_scheduled_hook( 'rc_cleanup_old_transactions' );
+} );
+
 // Multisite: crear tablas cuando se añade un nuevo sitio
 add_action( 'wp_initialize_site', function ( $new_site ) {
     RaffleCore_Activator::on_new_blog( $new_site->blog_id );

@@ -166,6 +166,14 @@ class RaffleCore_Activator {
                 }
             }
         }
+
+        // v3.5.0 → v3.6.0: Añadir lottery a rc_raffles
+        if ( version_compare( $from_version, '3.6.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'lottery', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `lottery` varchar(255) DEFAULT '' AFTER `description`" );
+            }
+        }
     }
 
     /**
@@ -196,6 +204,7 @@ class RaffleCore_Activator {
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             title varchar(255) NOT NULL,
             description text,
+            lottery varchar(255) DEFAULT '',
             prize_value decimal(12,2) NOT NULL DEFAULT 0,
             prize_image varchar(500) DEFAULT '',
             total_tickets int(11) NOT NULL DEFAULT 0,

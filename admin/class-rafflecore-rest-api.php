@@ -6,18 +6,18 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 class RaffleCore_REST_API {
 
-    const NAMESPACE = 'rafflecore/v1';
+    const API_NAMESPACE = 'rafflecore/v1';
 
     public function register_routes() {
         // GET /raffles
-        register_rest_route( self::NAMESPACE, '/raffles', array(
+        register_rest_route( self::API_NAMESPACE, '/raffles', array(
             'methods'             => 'GET',
             'callback'            => array( $this, 'get_raffles' ),
             'permission_callback' => '__return_true',
         ) );
 
         // GET /raffles/{id}
-        register_rest_route( self::NAMESPACE, '/raffles/(?P<id>\d+)', array(
+        register_rest_route( self::API_NAMESPACE, '/raffles/(?P<id>\d+)', array(
             'methods'             => 'GET',
             'callback'            => array( $this, 'get_raffle' ),
             'permission_callback' => '__return_true',
@@ -27,7 +27,7 @@ class RaffleCore_REST_API {
         ) );
 
         // GET /raffles/{id}/tickets
-        register_rest_route( self::NAMESPACE, '/raffles/(?P<id>\d+)/tickets', array(
+        register_rest_route( self::API_NAMESPACE, '/raffles/(?P<id>\d+)/tickets', array(
             'methods'             => 'GET',
             'callback'            => array( $this, 'get_raffle_tickets' ),
             'permission_callback' => array( $this, 'admin_permission' ),
@@ -37,14 +37,14 @@ class RaffleCore_REST_API {
         ) );
 
         // GET /stats
-        register_rest_route( self::NAMESPACE, '/stats', array(
+        register_rest_route( self::API_NAMESPACE, '/stats', array(
             'methods'             => 'GET',
             'callback'            => array( $this, 'get_stats' ),
             'permission_callback' => array( $this, 'admin_permission' ),
         ) );
 
         // POST /lookup-tickets (público, por email)
-        register_rest_route( self::NAMESPACE, '/lookup-tickets', array(
+        register_rest_route( self::API_NAMESPACE, '/lookup-tickets', array(
             'methods'             => 'POST',
             'callback'            => array( $this, 'lookup_tickets' ),
             'permission_callback' => '__return_true',
@@ -58,7 +58,7 @@ class RaffleCore_REST_API {
         ) );
 
         // GET /coupons (admin)
-        register_rest_route( self::NAMESPACE, '/coupons', array(
+        register_rest_route( self::API_NAMESPACE, '/coupons', array(
             'methods'             => 'GET',
             'callback'            => array( $this, 'get_coupons' ),
             'permission_callback' => array( $this, 'admin_permission' ),
@@ -127,6 +127,15 @@ class RaffleCore_REST_API {
     }
 
     public function lookup_tickets( $request ) {
+        // Rate limiting: 10 requests per minute per IP
+        $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+        $transient_key = 'rc_lookup_' . md5( $ip );
+        $attempts = (int) get_transient( $transient_key );
+        if ( $attempts >= 10 ) {
+            return new WP_Error( 'rate_limited', __( 'Demasiadas solicitudes. Intenta en un minuto.', 'rafflecore' ), array( 'status' => 429 ) );
+        }
+        set_transient( $transient_key, $attempts + 1, MINUTE_IN_SECONDS );
+
         $email = $request->get_param( 'email' );
 
         global $wpdb;
