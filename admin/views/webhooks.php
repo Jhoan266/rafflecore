@@ -19,9 +19,8 @@
     <!-- Create Webhook Form -->
     <div class="rc-card" style="margin-bottom:24px;">
         <h2 class="rc-card-title"><?php esc_html_e( 'Registrar Nuevo Webhook', 'rafflecore' ); ?></h2>
-        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rc-form-grid" aria-label="<?php esc_attr_e( 'Formulario de webhook', 'rafflecore' ); ?>">
+        <form method="post" action="" class="rc-form-grid" aria-label="<?php esc_attr_e( 'Formulario de webhook', 'rafflecore' ); ?>">
             <?php wp_nonce_field( 'rc_save_webhook', 'rc_nonce' ); ?>
-            <input type="hidden" name="action" value="rc_save_webhook">
 
             <div class="rc-form-row">
                 <label for="webhook_event"><?php esc_html_e( 'Evento', 'rafflecore' ); ?></label>

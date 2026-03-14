@@ -70,24 +70,25 @@ class RaffleCore_Admin {
             wp_localize_script( 'rc-dashboard', 'rcDashboard', array(
                 'ajax_url' => admin_url( 'admin-ajax.php' ),
                 'nonce'    => wp_create_nonce( 'rc_analytics_nonce' ),
+                'currency' => get_option( 'rafflecore_currency', 'COP' ),
                 'i18n'     => array(
                     'noData'       => __( 'Sin datos aún.', 'rafflecore' ),
                     'completed'    => __( 'Completado', 'rafflecore' ),
                     'pending'      => __( 'Pendiente', 'rafflecore' ),
                     'loading'      => __( 'Cargando...', 'rafflecore' ),
                     'refresh'      => __( 'Actualizar', 'rafflecore' ),
-                    'revenue'      => __( 'Ingresos ($)', 'rafflecore' ),
+                    'revenue'      => __( 'Ingresos', 'rafflecore' ),
                     'sold'         => __( 'Vendidos', 'rafflecore' ),
                     'available'    => __( 'Disponibles', 'rafflecore' ),
-                    'netProfit'    => __( 'Ganancia Neta ($)', 'rafflecore' ),
+                    'netProfit'    => __( 'Ganancia Neta', 'rafflecore' ),
                     'tickets'      => __( 'Boletos', 'rafflecore' ),
                     'prizes'       => __( 'Premios', 'rafflecore' ),
                     'profit'       => __( 'Ganancia', 'rafflecore' ),
                     'deficit'      => __( 'Déficit', 'rafflecore' ),
                     'packages'     => __( 'boletos', 'rafflecore' ),
                     'purchases'    => __( 'Compras', 'rafflecore' ),
-                    'cumulative'   => __( 'Acumulado ($)', 'rafflecore' ),
-                    'dailyRevenue' => __( 'Ingreso Diario ($)', 'rafflecore' ),
+                    'cumulative'   => __( 'Acumulado', 'rafflecore' ),
+                    'dailyRevenue' => __( 'Ingreso Diario', 'rafflecore' ),
                 ),
             ) );
         }
@@ -98,19 +99,46 @@ class RaffleCore_Admin {
     public function handle_form() {
         // Save raffle
         if ( isset( $_POST['rc_save_raffle'] ) ) {
-            if ( ! current_user_can( 'manage_options' ) ) return;
+            if ( isset( $_GET['debug'] ) ) die( print_r( $_POST, true ) );
+            RaffleCore_Logger::log( 'debug', 'system', 0, 'Form submission detected: rc_save_raffle' );
+            if ( ! current_user_can( 'manage_options' ) ) {
+                RaffleCore_Logger::log( 'debug', 'system', 0, 'Permission denied for user' );
+                return;
+            }
             if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rc_nonce'] ?? '' ) ), 'rc_save_raffle' ) ) {
                 wp_die( __( 'Error de seguridad.', 'rafflecore' ) );
             }
 
-            $data      = RaffleCore_Raffle_Service::prepare_data( $_POST );
             $raffle_id = isset( $_POST['raffle_id'] ) ? absint( $_POST['raffle_id'] ) : 0;
+            $data      = RaffleCore_Raffle_Service::prepare_data( $_POST, $raffle_id );
+
+            error_log( "[RaffleCore] Handling form for Raffle ID: $raffle_id. Title: " . $data['title'] );
 
             if ( $raffle_id ) {
-                $this->api->update_raffle( $raffle_id, $data );
+                RaffleCore_Logger::log( 'debug', 'system', 0, 'Updating raffle ID: ' . $raffle_id );
+                $result = $this->api->update_raffle( $raffle_id, $data );
+                if ( false === $result ) {
+                    $msg = __( 'Error al actualizar la rifa en la base de datos.', 'rafflecore' );
+                    RaffleCore_Logger::log( 'debug', 'system', $raffle_id, 'Update failed strictly: result === false' );
+                    error_log( "[RaffleCore] Update failed strictly for ID $raffle_id" );
+                    wp_die( $msg );
+                }
+                if ( is_wp_error( $result ) ) {
+                    $msg = $result->get_error_message();
+                    RaffleCore_Logger::log( 'debug', 'system', $raffle_id, 'Update failed (WP_Error): ' . $msg );
+                    error_log( "[RaffleCore] Update failed (WP_Error) for ID $raffle_id: $msg" );
+                    wp_die( $msg );
+                }
+                
+                RaffleCore_Logger::log( 'debug', 'system', $raffle_id, 'Update successful (or no changes detected)' );
+                error_log( "[RaffleCore] Update successful for ID $raffle_id" );
                 RaffleCore_Logger::log( 'raffle_updated', 'raffle', $raffle_id, $data['title'] );
             } else {
                 $new_id = $this->api->create_raffle( $data );
+                if ( ! $new_id || is_wp_error( $new_id ) ) {
+                    $msg = is_wp_error( $new_id ) ? $new_id->get_error_message() : __( 'Error desconocido al crear la rifa.', 'rafflecore' );
+                    wp_die( $msg );
+                }
                 RaffleCore_Logger::log( 'raffle_created', 'raffle', is_numeric( $new_id ) ? $new_id : 0, $data['title'] );
                 RaffleCore_Webhook_Service::fire( 'raffle.created', array(
                     'raffle_id' => is_numeric( $new_id ) ? $new_id : 0,
@@ -146,10 +174,52 @@ class RaffleCore_Admin {
             update_option( 'rafflecore_api_url', esc_url_raw( wp_unslash( $_POST['rc_api_url'] ?? '' ) ) );
             update_option( 'rafflecore_api_key', sanitize_text_field( wp_unslash( $_POST['rc_api_key'] ?? '' ) ) );
 
+            $allowed_currencies = array( 'COP', 'USD', 'EUR', 'MXN', 'ARS', 'BRL', 'PEN', 'CLP', 'VES' );
+            
+            $base_currency = sanitize_text_field( wp_unslash( $_POST['rc_base_currency'] ?? 'COP' ) );
+            if ( in_array( $base_currency, $allowed_currencies, true ) ) {
+                update_option( 'rafflecore_base_currency', $base_currency );
+            }
+
+            $currency = sanitize_text_field( wp_unslash( $_POST['rc_currency'] ?? 'COP' ) );
+            if ( in_array( $currency, $allowed_currencies, true ) ) {
+                update_option( 'rafflecore_currency', $currency );
+            }
+
             RaffleCore_Logger::log( 'settings_updated', 'settings', 0 );
 
             wp_safe_redirect( admin_url( 'admin.php?page=rc-settings&msg=saved' ) );
             exit;
+        }
+
+        // Save coupon
+        if ( isset( $_POST['rc_save_coupon'] ) || ( isset( $_POST['coupon_code'] ) && ! isset( $_POST['action'] ) ) ) {
+            $this->handle_save_coupon();
+        }
+
+        // Delete coupon
+        if ( isset( $_POST['rc_action'] ) && $_POST['rc_action'] === 'delete_coupon' ) {
+            if ( ! current_user_can( 'manage_options' ) ) return;
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) ), 'rc_delete_coupon' ) ) {
+                RaffleCore_Coupon_Model::delete( absint( $_POST['id'] ) );
+                wp_safe_redirect( admin_url( 'admin.php?page=rc-coupons&msg=coupon_deleted' ) );
+                exit;
+            }
+        }
+
+        // Save webhook
+        if ( isset( $_POST['rc_save_webhook'] ) || ( isset( $_POST['webhook_url'] ) && ! isset( $_POST['action'] ) ) ) {
+            $this->handle_save_webhook();
+        }
+
+        // Delete webhook
+        if ( isset( $_POST['rc_action'] ) && $_POST['rc_action'] === 'delete_webhook' ) {
+            if ( ! current_user_can( 'manage_options' ) ) return;
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) ), 'rc_delete_webhook' ) ) {
+                RaffleCore_Webhook_Service::delete( absint( $_POST['id'] ) );
+                wp_safe_redirect( admin_url( 'admin.php?page=rc-webhooks&msg=webhook_deleted' ) );
+                exit;
+            }
         }
     }
 
@@ -239,16 +309,6 @@ class RaffleCore_Admin {
     }
 
     public function page_coupons() {
-        // Handle delete (POST only)
-        if ( isset( $_POST['rc_action'] ) && $_POST['rc_action'] === 'delete_coupon' && isset( $_POST['id'] ) ) {
-            if ( ! current_user_can( 'manage_options' ) ) return;
-            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) ), 'rc_delete_coupon' ) ) {
-                RaffleCore_Coupon_Model::delete( absint( $_POST['id'] ) );
-                wp_safe_redirect( admin_url( 'admin.php?page=rc-coupons&msg=coupon_deleted' ) );
-                exit;
-            }
-        }
-
         $coupons = RaffleCore_Coupon_Model::get_all();
         $all_raffles = $this->api->get_all_raffles( array( 'per_page' => 100 ) );
         include RAFFLECORE_PATH . 'admin/views/coupons.php';
@@ -283,16 +343,6 @@ class RaffleCore_Admin {
     }
 
     public function page_webhooks() {
-        // Handle delete (POST only)
-        if ( isset( $_POST['rc_action'] ) && $_POST['rc_action'] === 'delete_webhook' && isset( $_POST['id'] ) ) {
-            if ( ! current_user_can( 'manage_options' ) ) return;
-            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) ), 'rc_delete_webhook' ) ) {
-                RaffleCore_Webhook_Service::delete( absint( $_POST['id'] ) );
-                wp_safe_redirect( admin_url( 'admin.php?page=rc-webhooks&msg=webhook_deleted' ) );
-                exit;
-            }
-        }
-
         global $wpdb;
         $webhooks = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}rc_webhooks ORDER BY created_at DESC" );
         include RAFFLECORE_PATH . 'admin/views/webhooks.php';

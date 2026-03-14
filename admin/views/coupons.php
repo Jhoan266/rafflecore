@@ -19,9 +19,8 @@
     <!-- Create Coupon Form -->
     <div class="rc-card" style="margin-bottom:24px;">
         <h2 class="rc-card-title"><?php esc_html_e( 'Crear Nuevo Cupón', 'rafflecore' ); ?></h2>
-        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rc-form-grid" aria-label="<?php esc_attr_e( 'Formulario de cupón', 'rafflecore' ); ?>">
+        <form method="post" action="" class="rc-form-grid" aria-label="<?php esc_attr_e( 'Formulario de cupón', 'rafflecore' ); ?>">
             <?php wp_nonce_field( 'rc_save_coupon', 'rc_nonce' ); ?>
-            <input type="hidden" name="action" value="rc_save_coupon">
 
             <div class="rc-form-row">
                 <label for="coupon_code"><?php esc_html_e( 'Código', 'rafflecore' ); ?></label>

@@ -20,9 +20,6 @@ class RaffleCore {
         $this->loader->add_action( 'admin_menu', $admin, 'add_menus' );
         $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_assets' );
         $this->loader->add_action( 'admin_init', $admin, 'handle_form' );
-        $this->loader->add_action( 'admin_post_rc_admin_form', $admin, 'handle_form' );
-        $this->loader->add_action( 'admin_post_rc_save_coupon', $admin, 'handle_save_coupon' );
-        $this->loader->add_action( 'admin_post_rc_save_webhook', $admin, 'handle_save_webhook' );
 
         // Public
         $public = new RaffleCore_Public( $this->api );
@@ -71,6 +68,17 @@ class RaffleCore {
         $this->loader->add_action( 'rc_cleanup_reservations', 'RaffleCore_Reservation_Service', 'cleanup_expired' );
         RaffleCore_Reservation_Service::schedule_cleanup();
 
+        // Transaction cleanup cron (30 days)
+        $this->loader->add_action( 'rc_cleanup_old_transactions', $this, 'cleanup_old_transactions' );
+        if ( ! wp_next_scheduled( 'rc_cleanup_old_transactions' ) ) {
+            wp_schedule_event( time(), 'daily', 'rc_cleanup_old_transactions' );
+        }
+
+        // Export AJAX endpoints
+        $this->loader->add_action( 'wp_ajax_rc_export_buyers', 'RaffleCore_Export', 'ajax_export_buyers' );
+        $this->loader->add_action( 'wp_ajax_rc_export_tickets', 'RaffleCore_Export', 'ajax_export_tickets' );
+        $this->loader->add_action( 'wp_ajax_rc_export_transactions', 'RaffleCore_Export', 'ajax_export_transactions' );
+
         // Execute all hooks
         $this->loader->run();
 
@@ -91,6 +99,41 @@ class RaffleCore {
         $mimes['ttf']   = 'font/ttf';
         $mimes['otf']   = 'font/otf';
         return $mimes;
+    }
+
+    /**
+     * Elimina transacciones (compras + boletos) con más de 30 días de antigüedad.
+     * Solo elimina las que tienen status cancelado/fallido, o las completadas de rifas terminadas.
+     */
+    public function cleanup_old_transactions() {
+        global $wpdb;
+        $pfx      = $wpdb->prefix;
+        $cutoff   = gmdate( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
+
+        // Delete tickets linked to old purchases from finished/cancelled raffles
+        $wpdb->query( $wpdb->prepare(
+            "DELETE t FROM {$pfx}rc_tickets t
+             INNER JOIN {$pfx}rc_purchases p ON t.purchase_id = p.id
+             INNER JOIN {$pfx}rc_raffles r ON p.raffle_id = r.id
+             WHERE p.purchase_date < %s
+               AND r.status IN ('finished', 'cancelled')
+               AND p.status IN ('cancelled', 'failed')",
+            $cutoff
+        ) );
+
+        // Delete old purchases from finished/cancelled raffles
+        $deleted = $wpdb->query( $wpdb->prepare(
+            "DELETE p FROM {$pfx}rc_purchases p
+             INNER JOIN {$pfx}rc_raffles r ON p.raffle_id = r.id
+             WHERE p.purchase_date < %s
+               AND r.status IN ('finished', 'cancelled')
+               AND p.status IN ('cancelled', 'failed')",
+            $cutoff
+        ) );
+
+        if ( $deleted > 0 ) {
+            RaffleCore_Logger::log( 'cleanup_transactions', 'system', 0, sprintf( '%d old transactions removed', $deleted ) );
+        }
     }
 
     public function woocommerce_missing_notice() {
@@ -118,6 +161,11 @@ class RaffleCore {
         $progress  = RaffleCore_Raffle_Service::get_progress( $raffle );
         $packages  = RaffleCore_Raffle_Service::get_available_packages( $raffle );
 
+        $sold_numbers = array();
+        if ( isset( $raffle->type ) && $raffle->type === 'selectable' ) {
+            $sold_numbers = $this->api->get_used_numbers( $raffle_id );
+        }
+
         wp_send_json_success( array(
             'total_tickets' => (int) $raffle->total_tickets,
             'sold_tickets'  => (int) $raffle->sold_tickets,
@@ -126,6 +174,7 @@ class RaffleCore {
             'status'        => $raffle->status,
             'ticket_price'  => (float) $raffle->ticket_price,
             'packages'      => $packages,
+            'sold_numbers'  => $sold_numbers,
         ) );
     }
 }

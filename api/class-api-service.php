@@ -91,8 +91,8 @@ class RaffleCore_API_Service {
 
     // ─── TICKETS ───────────────────────────────────────────────
 
-    public function generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email ) {
-        return $this->provider->generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email );
+    public function generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email, $specific_numbers = array() ) {
+        return $this->provider->generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email, $specific_numbers );
     }
 
     public function get_tickets_by_purchase( $purchase_id ) {
@@ -101,6 +101,10 @@ class RaffleCore_API_Service {
 
     public function get_tickets_by_raffle( $raffle_id ) {
         return $this->provider->get_tickets_by_raffle( $raffle_id );
+    }
+
+    public function get_used_numbers( $raffle_id ) {
+        return $this->provider->get_used_numbers( $raffle_id );
     }
 
     // ─── DRAW ───────────────────────────────────────────────────

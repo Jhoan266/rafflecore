@@ -58,7 +58,8 @@ class RaffleCore_WooCommerce {
         $quantity    = isset( $_POST['ticket_qty'] ) ? absint( $_POST['ticket_qty'] ) : 0;
         $buyer_name  = isset( $_POST['buyer_name'] ) ? sanitize_text_field( wp_unslash( $_POST['buyer_name'] ) ) : '';
         $buyer_email = isset( $_POST['buyer_email'] ) ? sanitize_email( wp_unslash( $_POST['buyer_email'] ) ) : '';
-        $buyer_phone = isset( $_POST['buyer_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['buyer_phone'] ) ) : '';
+        $buyer_phone    = isset( $_POST['buyer_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['buyer_phone'] ) ) : '';
+        $chosen_numbers = isset( $_POST['chosen_numbers'] ) ? sanitize_text_field( wp_unslash( $_POST['chosen_numbers'] ) ) : '';
 
         $raffle = $this->api->get_raffle( $raffle_id );
 
@@ -146,6 +147,7 @@ class RaffleCore_WooCommerce {
         WC()->session->set( 'rc_buyer_name', $buyer_name );
         WC()->session->set( 'rc_buyer_email', $buyer_email );
         WC()->session->set( 'rc_quantity', $quantity );
+        WC()->session->set( 'rc_chosen_numbers', $chosen_numbers );
 
         wp_send_json_success( array(
             'checkout_url' => wc_get_checkout_url(),
@@ -169,8 +171,14 @@ class RaffleCore_WooCommerce {
         // Buscar metadata de rifa en line items o en order meta
         $raffle_id   = (int) $order->get_meta( '_rc_raffle_id' );
         $purchase_id = (int) $order->get_meta( '_rc_purchase_id' );
-        $quantity    = (int) $order->get_meta( '_rc_quantity' );
-        $buyer_email = $order->get_meta( '_rc_buyer_email' );
+        $quantity       = (int) $order->get_meta( '_rc_quantity' );
+        $buyer_email    = $order->get_meta( '_rc_buyer_email' );
+        $chosen_numbers = $order->get_meta( '_rc_chosen_numbers' );
+
+        $specific_numbers = array();
+        if ( ! empty( $chosen_numbers ) ) {
+            $specific_numbers = array_filter( array_map( 'absint', explode( ',', $chosen_numbers ) ) );
+        }
 
         // Si no tiene meta de rifa, no es un pedido de rifa
         if ( ! $raffle_id || ! $quantity ) {
@@ -200,7 +208,7 @@ class RaffleCore_WooCommerce {
         // generate() usa FOR UPDATE internamente.
         // Nota: sold_tickets ya fue incrementado en la reserva, así que el Ticket Service
         // solo inserta tickets y NO incrementa sold_tickets de nuevo.
-        $tickets = $this->generate_tickets_without_increment( $raffle_id, $purchase_id, $quantity, $buyer_email );
+        $tickets = $this->generate_tickets_without_increment( $raffle_id, $purchase_id, $quantity, $buyer_email, $specific_numbers );
 
         if ( is_wp_error( $tickets ) ) {
             $wpdb->query( 'ROLLBACK' );
@@ -284,7 +292,7 @@ class RaffleCore_WooCommerce {
      *
      * Reutiliza la lógica de RaffleCore_Ticket_Service pero sin el UPDATE de sold_tickets.
      */
-    private function generate_tickets_without_increment( $raffle_id, $purchase_id, $quantity, $buyer_email ) {
+    private function generate_tickets_without_increment( $raffle_id, $purchase_id, $quantity, $buyer_email, $specific_numbers = array() ) {
         global $wpdb;
 
         $t_raffles = $wpdb->prefix . 'rc_raffles';
@@ -300,35 +308,53 @@ class RaffleCore_WooCommerce {
             return new WP_Error( 'not_found', __( 'Rifa no encontrada.', 'rafflecore' ) );
         }
 
+        // Obtener números ya usados
         $used_numbers = $wpdb->get_col( $wpdb->prepare(
             "SELECT ticket_number FROM {$t_tickets} WHERE raffle_id = %d",
             $raffle_id
         ) );
 
         $used_set = array_flip( $used_numbers );
-        $total    = (int) $raffle->total_tickets;
+        $tickets  = array();
 
-        // Pool-based [1, total]
-        $pool = array();
-        for ( $i = 1; $i <= $total; $i++ ) {
-            if ( ! isset( $used_set[ $i ] ) ) {
-                $pool[] = $i;
+        if ( ! empty( $specific_numbers ) ) {
+            // Lógica similar a Ticket_Service::generate para números específicos
+            foreach ( $specific_numbers as $num ) {
+                $num = (int) $num;
+                if ( $num < 1 || $num > (int) $raffle->total_tickets || isset( $used_set[ $num ] ) ) {
+                    // Si un número elegido se vendió mientras el usuario pagaba, 
+                    // tenemos un problema. En un sistema real deberíamos fallar o asignar uno aleatorio.
+                    // Para este MVP, si falla, intentamos asignar aleatorios.
+                    $specific_numbers = array(); 
+                    break;
+                }
+                $tickets[] = $num;
             }
         }
+        
+        if ( empty( $tickets ) ) {
+            $pool = array();
+            $total = (int) $raffle->total_tickets;
+            for ( $i = 1; $i <= $total; $i++ ) {
+                if ( ! isset( $used_set[ $i ] ) ) {
+                    $pool[] = $i;
+                }
+            }
 
-        if ( count( $pool ) < $quantity ) {
-            return new WP_Error( 'insufficient', __( 'No hay suficientes números disponibles.', 'rafflecore' ) );
+            if ( count( $pool ) < $quantity ) {
+                return new WP_Error( 'insufficient', __( 'No hay suficientes números disponibles.', 'rafflecore' ) );
+            }
+
+            for ( $i = count( $pool ) - 1; $i > 0; $i-- ) {
+                $j = random_int( 0, $i );
+                $tmp = $pool[ $i ];
+                $pool[ $i ] = $pool[ $j ];
+                $pool[ $j ] = $tmp;
+            }
+
+            $tickets = array_slice( $pool, 0, $quantity );
         }
 
-        // Fisher-Yates con CSPRNG
-        for ( $i = count( $pool ) - 1; $i > 0; $i-- ) {
-            $j = random_int( 0, $i );
-            $tmp = $pool[ $i ];
-            $pool[ $i ] = $pool[ $j ];
-            $pool[ $j ] = $tmp;
-        }
-
-        $tickets = array_slice( $pool, 0, $quantity );
         sort( $tickets );
 
         foreach ( $tickets as $number ) {
@@ -368,6 +394,7 @@ class RaffleCore_WooCommerce {
         $order->update_meta_data( '_rc_quantity', $session->get( 'rc_quantity' ) );
         $order->update_meta_data( '_rc_buyer_name', $session->get( 'rc_buyer_name' ) );
         $order->update_meta_data( '_rc_buyer_email', $session->get( 'rc_buyer_email' ) );
+        $order->update_meta_data( '_rc_chosen_numbers', $session->get( 'rc_chosen_numbers' ) );
         $order->update_meta_data( '_rc_is_raffle', 'yes' );
         $order->save();
 

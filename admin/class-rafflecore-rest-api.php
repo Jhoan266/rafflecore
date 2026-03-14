@@ -152,8 +152,8 @@ class RaffleCore_REST_API {
         $grouped = array();
         foreach ( $results as $row ) {
             $rid = (int) $row->raffle_id;
+            $digits = isset($row->ticket_digits) ? (int)$row->ticket_digits : null;
             if ( ! isset( $grouped[ $rid ] ) ) {
-                $digits = strlen( (string) $row->total_tickets );
                 $grouped[ $rid ] = array(
                     'raffle_id'    => $rid,
                     'raffle_title' => $row->raffle_title,
@@ -162,8 +162,7 @@ class RaffleCore_REST_API {
                     'tickets'      => array(),
                 );
             }
-            $digits = strlen( (string) $row->total_tickets );
-            $grouped[ $rid ]['tickets'][] = str_pad( $row->ticket_number, $digits, '0', STR_PAD_LEFT );
+            $grouped[ $rid ]['tickets'][] = RaffleCore_Ticket_Service::format_numbers([$row->ticket_number], ['digits'=>$digits])[0];
         }
 
         return rest_ensure_response( array( 'raffles' => array_values( $grouped ) ) );

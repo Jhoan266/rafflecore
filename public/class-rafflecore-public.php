@@ -19,8 +19,8 @@ class RaffleCore_Public {
         if ( ! $post || ! has_shortcode( $post->post_content, 'rafflecore' ) ) return;
 
         wp_enqueue_style( 'rc-google-fonts', 'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap', array(), null );
-        wp_enqueue_style( 'rc-public', RAFFLECORE_URL . 'assets/css/public.css', array( 'rc-google-fonts' ), RAFFLECORE_VERSION );
-
+        $css_ver = file_exists( RAFFLECORE_PATH . 'assets/css/public.css' ) ? filemtime( RAFFLECORE_PATH . 'assets/css/public.css' ) : RAFFLECORE_VERSION;
+        wp_enqueue_style( 'rc-public', RAFFLECORE_URL . 'assets/css/public.css', array( 'rc-google-fonts' ), $css_ver );
         // Load per-raffle custom font if set
         $raffle_id = self::extract_raffle_id_from_content( $post->post_content );
         if ( $raffle_id ) {

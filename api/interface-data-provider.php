@@ -90,7 +90,7 @@ interface RaffleCore_Data_Provider {
      * @param string $buyer_email
      * @return array|WP_Error
      */
-    public function generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email );
+    public function generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email, $specific_numbers = array() );
 
     /**
      * @param int $purchase_id
@@ -103,6 +103,12 @@ interface RaffleCore_Data_Provider {
      * @return array
      */
     public function get_tickets_by_raffle( $raffle_id );
+
+    /**
+     * @param int $raffle_id
+     * @return array
+     */
+    public function get_used_numbers( $raffle_id );
 
     // ─── DRAW ───────────────────────────────────────────────────
 

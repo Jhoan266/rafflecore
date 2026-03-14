@@ -21,8 +21,7 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
 <div class="wrap rc-wrap">
     <h1 class="rc-title"><?php echo $is_edit ? '✏️ ' . esc_html__( 'Editar Rifa', 'rafflecore' ) : '➕ ' . esc_html__( 'Crear Nueva Rifa', 'rafflecore' ); ?></h1>
 
-    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rc-form" aria-label="<?php esc_attr_e( 'Formulario de rifa', 'rafflecore' ); ?>">
-        <input type="hidden" name="action" value="rc_admin_form">
+    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=rc-raffles&action=' . ( $is_edit ? 'edit&id=' . intval( $raffle->id ) : 'new' ) ) ); ?>" class="rc-form" aria-label="<?php esc_attr_e( 'Formulario de rifa', 'rafflecore' ); ?>">
         <?php wp_nonce_field( 'rc_save_raffle', 'rc_nonce' ); ?>
         <input type="hidden" name="rc_save_raffle" value="1">
         <?php if ( $is_edit ) : ?>
@@ -43,12 +42,33 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
                           placeholder="<?php esc_attr_e( 'Descripción detallada del premio...', 'rafflecore' ); ?>"><?php echo $is_edit ? esc_textarea( $raffle->description ) : ''; ?></textarea>
             </div>
 
+
             <div class="rc-form-group">
-                <label for="rc_total_tickets"><?php esc_html_e( 'Total de Boletos', 'rafflecore' ); ?> *</label>
-                <input type="number" id="rc_total_tickets" name="total_tickets" min="1" required
-                       value="<?php echo $is_edit ? intval( $raffle->total_tickets ) : ''; ?>"
-                       placeholder="Ej: 1000">
+                <label for="rc_ticket_digits"><?php esc_html_e( 'Cantidad de Dígitos del Boleto', 'rafflecore' ); ?> *</label>
+                <select id="rc_ticket_digits" name="ticket_digits" required onchange="updateTicketRange()">
+                    <option value="2" <?php if ($is_edit && strlen((string)$raffle->total_tickets) == 2) echo 'selected'; ?>>2 dígitos (01–99)</option>
+                    <option value="3" <?php if ($is_edit && strlen((string)$raffle->total_tickets) == 3) echo 'selected'; ?>>3 dígitos (001–999)</option>
+                    <option value="4" <?php if ($is_edit && strlen((string)$raffle->total_tickets) == 4) echo 'selected'; ?>>4 dígitos (0001–9999)</option>
+                    <option value="5" <?php if ($is_edit && strlen((string)$raffle->total_tickets) == 5) echo 'selected'; ?>>5 dígitos (00001–99999)</option>
+                </select>
+                <div id="rc_ticket_range" style="margin-top:6px;color:#666;font-size:13px;"></div>
+                <input type="hidden" id="rc_total_tickets" name="total_tickets" value="<?php echo $is_edit ? intval( $raffle->total_tickets ) : '99'; ?>">
             </div>
+
+            <script>
+            function updateTicketRange() {
+                var digits = document.getElementById('rc_ticket_digits').value;
+                var min = (digits == 2) ? 1 : (digits == 3) ? 1 : (digits == 4) ? 1 : 1;
+                var max = (digits == 2) ? 99 : (digits == 3) ? 999 : (digits == 4) ? 9999 : 99999;
+                var rangeText = 'Rango permitido: ' + String(min).padStart(digits, '0') + ' – ' + String(max).padStart(digits, '0');
+                document.getElementById('rc_ticket_range').innerText = rangeText;
+                document.getElementById('rc_total_tickets').value = max;
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                updateTicketRange();
+                document.getElementById('rc_ticket_digits').addEventListener('change', updateTicketRange);
+            });
+            </script>
 
             <div class="rc-form-group">
                 <label for="rc_ticket_price"><?php esc_html_e( 'Precio por Boleto ($)', 'rafflecore' ); ?> *</label>
@@ -64,12 +84,36 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
             </div>
 
             <div class="rc-form-group">
+                <label for="rc_countdown_threshold"><?php esc_html_e( 'Umbral de Cuenta Regresiva (%)', 'rafflecore' ); ?></label>
+                <input type="number" id="rc_countdown_threshold" name="countdown_threshold" min="0" max="100"
+                       value="<?php echo $is_edit ? intval( $raffle->countdown_threshold ) : '0'; ?>">
+                <p class="rc-help"><?php esc_html_e( '0 = siempre visible. Ej: 80 = solo visible al vender el 80%.', 'rafflecore' ); ?></p>
+            </div>
+
+            <div class="rc-form-group">
                 <label for="rc_status"><?php esc_html_e( 'Estado', 'rafflecore' ); ?></label>
                 <select id="rc_status" name="status">
                     <option value="active" <?php selected( $is_edit ? $raffle->status : '', 'active' ); ?>><?php esc_html_e( 'Activa', 'rafflecore' ); ?></option>
                     <option value="paused" <?php selected( $is_edit ? $raffle->status : '', 'paused' ); ?>><?php esc_html_e( 'Pausada', 'rafflecore' ); ?></option>
                     <option value="finished" <?php selected( $is_edit ? $raffle->status : '', 'finished' ); ?>><?php esc_html_e( 'Finalizada', 'rafflecore' ); ?></option>
                 </select>
+            </div>
+
+            <div class="rc-form-group">
+                <label for="rc_type"><?php esc_html_e( 'Modelo de Venta', 'rafflecore' ); ?></label>
+                <select id="rc_type" name="type" onchange="document.getElementById('rc-max-number-group').style.display = (this.value === 'selectable') ? 'block' : 'none';">
+                    <option value="quantity" <?php selected( $is_edit ? ($raffle->type ?? 'quantity') : 'quantity', 'quantity' ); ?>><?php esc_html_e( 'Por Cantidad (aleatorios o secuenciales)', 'rafflecore' ); ?></option>
+                    <option value="selectable" <?php selected( $is_edit ? ($raffle->type ?? '') : '', 'selectable' ); ?>><?php esc_html_e( 'Selección de Números (Elige tu boleto)', 'rafflecore' ); ?></option>
+                </select>
+                <p class="rc-help" style="margin-top:4px;font-size:12px;color:#636e72;"><?php esc_html_e( 'Elige cómo los compradores escogen sus boletos.', 'rafflecore' ); ?></p>
+            </div>
+
+            <div class="rc-form-group" id="rc-max-number-group" style="<?php echo ($is_edit && ($raffle->type ?? '') === 'selectable') ? 'display:block;' : 'display:none;'; ?>">
+                <label for="rc_max_number"><?php esc_html_e( 'Número Máximo en Tablero', 'rafflecore' ); ?></label>
+                <input type="number" id="rc_max_number" name="max_number" min="0"
+                       value="<?php echo $is_edit ? intval( $raffle->max_number ?? 0 ) : ''; ?>"
+                       placeholder="Ej: 99">
+                <p class="rc-help" style="margin-top:4px;font-size:12px;color:#636e72;"><?php esc_html_e( 'Ej: 99 mostrará boletos del 0 al 99.', 'rafflecore' ); ?></p>
             </div>
 
             <div class="rc-form-group">
@@ -106,6 +150,26 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
                 <p class="rc-help"><?php esc_html_e( 'Sube un archivo de fuente. Formatos recomendados:', 'rafflecore' ); ?> <strong>.woff2</strong> <?php esc_html_e( '(más ligero) o .ttf', 'rafflecore' ); ?></p>
             </div>
 
+            <div class="rc-form-group">
+                <label for="rc_color_palette"><?php esc_html_e( 'Paleta de Colores', 'rafflecore' ); ?></label>
+                <select id="rc_color_palette" name="color_palette">
+                    <option value="" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', '' ); ?>><?php esc_html_e( 'Predeterminada (Violeta)', 'rafflecore' ); ?></option>
+                    <option value="vibrant" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'vibrant' ); ?>>🎨 <?php esc_html_e( 'Vibrante (Rosa / Fucsia)', 'rafflecore' ); ?></option>
+                    <option value="ocean" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'ocean' ); ?>>🌊 <?php esc_html_e( 'Océano (Azul / Turquesa)', 'rafflecore' ); ?></option>
+                    <option value="sunset" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'sunset' ); ?>>🌅 <?php esc_html_e( 'Atardecer (Naranja / Dorado)', 'rafflecore' ); ?></option>
+                    <option value="neon" <?php selected( $is_edit ? ( $raffle->color_palette ?? '' ) : '', 'neon' ); ?>>⚡ <?php esc_html_e( 'Neón (Verde / Lima)', 'rafflecore' ); ?></option>
+                </select>
+                <p class="rc-help"><?php esc_html_e( 'Esquema de colores que se aplicará al frontend de esta rifa.', 'rafflecore' ); ?></p>
+            </div>
+
+            <div class="rc-form-group">
+                <label for="rc_min_custom_qty"><?php esc_html_e( 'Mín. Boletos Personalizados', 'rafflecore' ); ?></label>
+                <input type="number" id="rc_min_custom_qty" name="min_custom_qty" min="0"
+                       value="<?php echo $is_edit ? intval( $raffle->min_custom_qty ?? 0 ) : '0'; ?>"
+                       placeholder="0">
+                <p class="rc-help"><?php esc_html_e( '0 = deshabilitado. Ej: 3 = mínimo 3 boletos en compra personalizada.', 'rafflecore' ); ?></p>
+            </div>
+
             <div class="rc-form-group rc-col-full">
                 <label for="rc_packages"><?php esc_html_e( 'Paquetes (cantidad:precio separados por coma)', 'rafflecore' ); ?></label>
                 <input type="text" id="rc_packages" name="packages"
@@ -139,21 +203,6 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
                 </div>
             </div>
 
-            <div class="rc-form-group rc-col-full">
-                <label for="rc_prize_gallery"><?php esc_html_e( 'Galería de Imágenes (URLs separadas por coma)', 'rafflecore' ); ?></label>
-                <?php
-                $gallery_value = '';
-                if ( $is_edit && ! empty( $raffle->prize_gallery ) ) {
-                    $gallery_arr = json_decode( $raffle->prize_gallery, true );
-                    if ( is_array( $gallery_arr ) ) {
-                        $gallery_value = implode( ', ', $gallery_arr );
-                    }
-                }
-                ?>
-                <textarea id="rc_prize_gallery" name="prize_gallery" rows="2"
-                          placeholder="<?php esc_attr_e( 'https://ejemplo.com/img1.jpg, https://ejemplo.com/img2.jpg', 'rafflecore' ); ?>"><?php echo esc_textarea( $gallery_value ); ?></textarea>
-                <p class="rc-help"><?php esc_html_e( 'Múltiples URLs de imágenes para mostrar en galería del premio.', 'rafflecore' ); ?></p>
-            </div>
         </div>
 
         <div class="rc-form-actions">

@@ -107,7 +107,12 @@ class RaffleCore_Export {
             wp_die( __( 'No autorizado.', 'rafflecore' ) );
         }
 
-        check_ajax_referer( 'rc_admin_nonce', 'nonce' );
+        // Accept either nonce
+        $valid = wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ?? '' ) ), 'rc_admin_nonce' )
+              || wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ?? '' ) ), 'rc_analytics_nonce' );
+        if ( ! $valid ) {
+            wp_die( __( 'Nonce inválido.', 'rafflecore' ) );
+        }
 
         global $wpdb;
         $p = $wpdb->prefix;

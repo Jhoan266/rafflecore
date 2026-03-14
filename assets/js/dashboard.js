@@ -27,14 +27,43 @@
     return rgba(colorKeys[i % colorKeys.length], alpha);
   }
 
+  /* ── Currency config ── */
+  var currencyMap = {
+    COP: { symbol: "$", locale: "es-CO", decimals: 0 },
+    USD: { symbol: "$", locale: "en-US", decimals: 2 },
+    EUR: { symbol: "€", locale: "es-ES", decimals: 2 },
+    MXN: { symbol: "$", locale: "es-MX", decimals: 2 },
+    ARS: { symbol: "$", locale: "es-AR", decimals: 2 },
+    BRL: { symbol: "R$", locale: "pt-BR", decimals: 2 },
+    PEN: { symbol: "S/", locale: "es-PE", decimals: 2 },
+    CLP: { symbol: "$", locale: "es-CL", decimals: 0 },
+    VES: { symbol: "Bs.", locale: "es-VE", decimals: 2 },
+  };
+
+  var curCode =
+    typeof rcDashboard !== "undefined" && rcDashboard.currency
+      ? rcDashboard.currency
+      : "COP";
+  var curCfg = currencyMap[curCode] || currencyMap.COP;
+
   function formatMoney(n) {
     return (
-      "$" +
-      Number(n).toLocaleString("es-CO", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+      curCfg.symbol +
+      " " +
+      Number(n).toLocaleString(curCfg.locale, {
+        minimumFractionDigits: curCfg.decimals,
+        maximumFractionDigits: curCfg.decimals,
       })
     );
+  }
+
+  function formatMoneyCompact(n) {
+    var abs = Math.abs(Number(n));
+    var sign = Number(n) < 0 ? "-" : "";
+    if (abs >= 1e9) return sign + curCfg.symbol + (abs / 1e9).toFixed(1) + "B";
+    if (abs >= 1e6) return sign + curCfg.symbol + (abs / 1e6).toFixed(1) + "M";
+    if (abs >= 1e3) return sign + curCfg.symbol + (abs / 1e3).toFixed(1) + "K";
+    return formatMoney(n);
   }
 
   function truncate(str, len) {
@@ -47,9 +76,7 @@
   }
 
   function getGridColor() {
-    return isDarkTheme()
-      ? "rgba(255, 255, 255, .06)"
-      : "rgba(0, 0, 0, .06)";
+    return isDarkTheme() ? "rgba(255, 255, 255, .06)" : "rgba(0, 0, 0, .06)";
   }
 
   function getTextColor() {
@@ -115,7 +142,12 @@
   function ajax(type, extra) {
     var raffleId = $("#rc-raffle-filter").val() || 0;
     var params = $.extend(
-      { action: "rc_analytics_data", nonce: rcDashboard.nonce, type: type, raffle_id: raffleId },
+      {
+        action: "rc_analytics_data",
+        nonce: rcDashboard.nonce,
+        type: type,
+        raffle_id: raffleId,
+      },
       extra || {},
     );
     return $.getJSON(rcDashboard.ajax_url, params);
@@ -131,14 +163,12 @@
     ajax("overview").done(function (res) {
       if (!res.success) return;
       var d = res.data;
-      $("#kpi-revenue").text(formatMoney(d.total_revenue));
+      $("#kpi-revenue").text(formatMoneyCompact(d.total_revenue));
       $("#kpi-net-profit")
-        .text(formatMoney(d.net_profit))
+        .text(formatMoneyCompact(d.net_profit))
         .css("color", d.net_profit >= 0 ? "#34d399" : "#f87171");
       $("#kpi-tickets").text(
-        d.total_tickets_sold.toLocaleString("es-CO") +
-          " / " +
-          d.total_tickets_available.toLocaleString("es-CO"),
+        d.total_tickets_sold.toLocaleString("es-CO")
       );
       $("#kpi-buyers").text(d.total_buyers.toLocaleString("es-CO"));
       $("#kpi-sell-rate").text(d.sell_rate + "%");
@@ -146,16 +176,8 @@
       // secondary
       $("#kpi-active-raffles span").text(d.active_raffles);
       $("#kpi-total-raffles span").text(d.total_raffles);
-      $("#kpi-avg-price span").text(
-        Number(d.avg_ticket_price).toLocaleString("es-CO", {
-          minimumFractionDigits: 0,
-        }),
-      );
-      $("#kpi-month-trend span:last").text(
-        Number(d.revenue_this_month).toLocaleString("es-CO", {
-          minimumFractionDigits: 0,
-        }),
-      );
+      $("#kpi-avg-price span").text(formatMoney(d.avg_ticket_price));
+      $("#kpi-month-trend span:last").text(formatMoney(d.revenue_this_month));
 
       // month trend icon
       var icon = d.revenue_this_month >= d.revenue_last_month ? "📈" : "📉";
@@ -163,224 +185,118 @@
     });
   }
 
-  /* ── Revenue by Raffle ────────────────── */
-  function loadRevenueByRaffle() {
-    ajax("revenue_by_raffle").done(function (res) {
-      if (!res.success) return;
-      var data = res.data;
-      var labels = data.map(function (r) {
-        return truncate(r.title, 18);
-      });
-      var values = data.map(function (r) {
-        return parseFloat(r.revenue);
-      });
-      var bg = data.map(function (_, i) {
-        return colorAt(i, 0.75);
-      });
-      var border = data.map(function (_, i) {
-        return colorAt(i, 1);
-      });
 
-      if (charts.revenue) charts.revenue.destroy();
-      charts.revenue = new Chart($("#chart-revenue-raffle")[0], {
-        type: "bar",
+  /* ── Raffle Progress (doughnut) ────────── */
+  function loadRaffleProgress() {
+    var raffleId = parseInt($("#rc-raffle-filter").val()) || 0;
+    if (raffleId === 0) return; // Skip if global view
+
+    ajax("raffle_progress").done(function (res) {
+      if (!res.success) return;
+      var d = res.data;
+
+      var labels = ["Boletos Vendidos", "Disponibles"];
+      var values = [d.sold, d.available];
+      var bgColors = [rgba("green", 0.85), rgba("indigo", 0.15)];
+      var borderColors = [rgba("green", 1), "transparent"];
+
+      if (charts.progress) charts.progress.destroy();
+      
+      var total = d.total || 1;
+      var pct = ((d.sold / total) * 100).toFixed(1) + "%";
+      
+      // Custom plugin to draw text in center
+      const centerTextPlugin = {
+        id: 'centerText',
+        beforeDraw: function(chart) {
+          var width = chart.width,
+              height = chart.height,
+              ctx = chart.ctx;
+
+          ctx.restore();
+          var fontSize = (height / 114).toFixed(2);
+          ctx.font = "bold " + fontSize + "em 'Inter', sans-serif";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = getTextColor();
+
+          var text = pct,
+              textX = Math.round((width - ctx.measureText(text).width) / 2),
+              textY = height / 2.1;
+
+          ctx.fillText(text, textX, textY);
+          
+          ctx.font = "normal " + (fontSize / 2.5).toFixed(2) + "em 'Inter', sans-serif";
+          var subtext = d.sold.toLocaleString("es-CO") + " / " + d.total.toLocaleString("es-CO");
+          var subX = Math.round((width - ctx.measureText(subtext).width) / 2);
+          var subY = height / 1.7;
+          ctx.fillText(subtext, subX, subY);
+          
+          ctx.save();
+        }
+      };
+
+      charts.progress = new Chart($("#chart-raffle-progress")[0], {
+        type: "doughnut",
         data: {
           labels: labels,
           datasets: [
             {
-              label: rcDashboard.i18n.revenue,
               data: values,
-              backgroundColor: bg,
-              borderColor: border,
+              backgroundColor: bgColors,
+              borderColor: borderColors,
               borderWidth: 2,
-              borderRadius: 8,
+              hoverOffset: 4,
             },
           ],
         },
         options: {
-          indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
+          cutout: "75%",
           plugins: {
-            legend: { display: false },
+            legend: {
+              position: "bottom",
+              labels: {
+                padding: 16,
+                color: getTextColor(),
+              },
+            },
             tooltip: {
               callbacks: {
-                label: function (ctx) {
-                  return " " + formatMoney(ctx.raw);
-                },
+                label: function (ctx) { return " " + ctx.label + ": " + ctx.raw.toLocaleString("es-CO"); },
               },
-            },
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: { color: getGridColor() },
-              ticks: {
-                color: getTextColor(),
-                callback: function (v) {
-                  return formatMoney(v);
-                },
-              },
-            },
-            y: {
-              grid: { display: false },
-              ticks: { color: getTextColor() },
             },
           },
         },
+        plugins: [centerTextPlugin]
       });
     });
   }
 
-  /* ── Tickets by Raffle ────────────────── */
-  function loadTicketsByRaffle() {
-    ajax("tickets_by_raffle").done(function (res) {
-      if (!res.success) return;
-      var data = res.data;
-      var labels = data.map(function (r) {
-        return truncate(r.title, 18);
-      });
-      var sold = data.map(function (r) {
-        return parseInt(r.sold_tickets, 10);
-      });
-      var remaining = data.map(function (r) {
-        return parseInt(r.total_tickets, 10) - parseInt(r.sold_tickets, 10);
-      });
-
-      if (charts.tickets) charts.tickets.destroy();
-      charts.tickets = new Chart($("#chart-tickets-raffle")[0], {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: rcDashboard.i18n.sold,
-              data: sold,
-              backgroundColor: rgba("blue", 0.8),
-              borderRadius: 6,
-            },
-            {
-              label: rcDashboard.i18n.available,
-              data: remaining,
-              backgroundColor: rgba("blue", 0.15),
-              borderRadius: 6,
-            },
-          ],
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: "bottom" } },
-          scales: {
-            x: {
-              stacked: true,
-              beginAtZero: true,
-              grid: { color: getGridColor() },
-              ticks: { color: getTextColor() },
-            },
-            y: {
-              stacked: true,
-              grid: { display: false },
-              ticks: { color: getTextColor() },
-            },
-          },
-        },
-      });
-    });
-  }
-
-  /* ── Net Profit ───────────────────────── */
-  function loadNetProfit() {
-    ajax("net_profit").done(function (res) {
-      if (!res.success) return;
-      var data = res.data;
-      var labels = data.map(function (r) {
-        return truncate(r.title, 18);
-      });
-      var profits = data.map(function (r) {
-        return parseFloat(r.net_profit);
-      });
-      var bg = profits.map(function (v) {
-        return v >= 0 ? rgba("green", 0.75) : rgba("red", 0.75);
-      });
-      var border = profits.map(function (v) {
-        return v >= 0 ? rgba("green", 1) : rgba("red", 1);
-      });
-
-      if (charts.profit) charts.profit.destroy();
-      charts.profit = new Chart($("#chart-net-profit")[0], {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: rcDashboard.i18n.netProfit,
-              data: profits,
-              backgroundColor: bg,
-              borderColor: border,
-              borderWidth: 2,
-              borderRadius: 8,
-            },
-          ],
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function (ctx) {
-                  return " " + formatMoney(ctx.raw);
-                },
-              },
-            },
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: { color: getGridColor() },
-              ticks: {
-                color: getTextColor(),
-                callback: function (v) {
-                  return formatMoney(v);
-                },
-              },
-            },
-            y: {
-              grid: { display: false },
-              ticks: { color: getTextColor() },
-            },
-          },
-        },
-      });
-    });
-  }
-
-  /* ── Sales Trend ──────────────────────── */
-  function loadSalesTrend(period) {
+  /* ── Main Trend (Sales & Growth) ──────── */
+  function loadMainTrend(period) {
     period = period || "daily";
     ajax("sales_trend", { period: period }).done(function (res) {
       if (!res.success) return;
       var data = res.data;
-      var labels = data.map(function (r) {
-        return r.label;
-      });
-      var revenue = data.map(function (r) {
-        return parseFloat(r.revenue);
-      });
-      var tickets = data.map(function (r) {
-        return parseInt(r.tickets, 10);
-      });
+      var labels = data.map(function (r) { return r.label; });
+      var revenue = data.map(function (r) { return parseFloat(r.revenue); });
+      var tkts = data.map(function (r) { return parseInt(r.tickets, 10); });
+      
+      // Calculate running cumulative for the current window
+      var cumulative = [];
+      var run_sum = 0;
+      for (var i = 0; i < revenue.length; i++) {
+         run_sum += revenue[i];
+         cumulative.push(run_sum);
+      }
 
       if (charts.trend) charts.trend.destroy();
-
-      var ctx = $("#chart-sales-trend")[0].getContext("2d");
-      var gradient = ctx.createLinearGradient(0, 0, 0, 280);
-      gradient.addColorStop(0, rgba("blue", 0.2));
-      gradient.addColorStop(1, rgba("blue", 0.01));
+      var ctx = $("#chart-main-trend")[0].getContext("2d");
+      
+      var gradient = ctx.createLinearGradient(0, 0, 0, 350);
+      gradient.addColorStop(0, rgba("indigo", 0.15));
+      gradient.addColorStop(1, rgba("indigo", 0.01));
 
       charts.trend = new Chart(ctx, {
         type: "line",
@@ -388,34 +304,47 @@
           labels: labels,
           datasets: [
             {
-              label: rcDashboard.i18n.revenue,
-              data: revenue,
-              borderColor: rgba("blue", 1),
+              type: "line",
+              label: rcDashboard.i18n.cumulative || "Acumulado",
+              data: cumulative,
+              borderColor: rgba("indigo", 1),
               backgroundColor: gradient,
               fill: true,
               tension: 0.4,
-              pointBackgroundColor: rgba("blue", 1),
+              pointBackgroundColor: rgba("indigo", 1),
               pointBorderColor: isDarkTheme() ? "#1a1d2e" : "#fff",
               pointBorderWidth: 2,
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              yAxisID: "y",
-              _tickets: tickets, // Attach meta data for tooltip
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              yAxisID: "y1",
+              order: 1
             },
+            {
+              type: "bar",
+              label: "Ingresos del Período",
+              data: revenue,
+              backgroundColor: rgba("blue", 0.8),
+              borderRadius: 4,
+              yAxisID: "y",
+              order: 2,
+              _tickets: tkts,
+            }
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
-          plugins: { 
-            legend: { display: false },
+          plugins: {
+            legend: { position: "bottom" },
             tooltip: {
               callbacks: {
-                label: function (ctx) {
-                  var dataIndex = ctx.dataIndex;
-                  var tkts = ctx.dataset._tickets[dataIndex];
-                  return " " + formatMoney(ctx.raw) + " | " + tkts + " " + rcDashboard.i18n.tickets.toLowerCase();
+                label: function (ctx) { 
+                  var val = " " + ctx.dataset.label + ": " + formatMoney(ctx.raw);
+                  if (ctx.dataset.type === "bar") {
+                    val += " | " + ctx.dataset._tickets[ctx.dataIndex] + " boletos";
+                  }
+                  return val;
                 },
               },
             },
@@ -426,17 +355,16 @@
               position: "left",
               beginAtZero: true,
               grid: { color: getGridColor() },
-              ticks: {
-                color: getTextColor(),
-                callback: function (v) {
-                  return formatMoney(v);
-                },
-              },
+              ticks: { color: getTextColor(), callback: function (v) { return formatMoneyCompact(v); } },
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: getTextColor() },
+            y1: {
+              type: "linear",
+              position: "right",
+              beginAtZero: true,
+              grid: { drawOnChartArea: false },
+              ticks: { color: getTextColor(), callback: function (v) { return formatMoneyCompact(v); } },
             },
+            x: { grid: { display: false }, ticks: { color: getTextColor(), maxRotation: 45 } },
           },
         },
       });
@@ -462,52 +390,57 @@
       }
 
       if (charts.revenueVsPrize) charts.revenueVsPrize.destroy();
-      charts.revenueVsPrize = new Chart(
-        $("#chart-revenue-vs-prize")[0],
-        {
-          type: "doughnut",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                data: values,
-                backgroundColor: bgColors,
-                borderColor: borderColors,
-                borderWidth: 2,
-                hoverOffset: 8,
+      charts.revenueVsPrize = new Chart($("#chart-revenue-vs-prize")[0], {
+        type: "doughnut",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              data: values,
+              backgroundColor: bgColors,
+              borderColor: borderColors,
+              borderWidth: 2,
+              hoverOffset: 8,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "80%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                padding: 16,
+                color: getTextColor(),
               },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: "80%",
-            plugins: {
-              legend: {
-                position: "bottom",
-                labels: {
-                  padding: 16,
-                  color: getTextColor(),
-                },
-              },
-              tooltip: {
-                callbacks: {
-                  label: function (ctx) {
-                    var total = ctx.dataset.data.reduce(function (a, b) {
-                      return a + b;
-                    }, 0);
-                    var pct =
-                      total > 0
-                        ? ((ctx.raw / total) * 100).toFixed(1) + "%"
-                        : "0%";
-                    return " " + ctx.label + ": " + formatMoney(ctx.raw) + " (" + pct + ")";
-                  },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  var total = ctx.dataset.data.reduce(function (a, b) {
+                    return a + b;
+                  }, 0);
+                  var pct =
+                    total > 0
+                      ? ((ctx.raw / total) * 100).toFixed(1) + "%"
+                      : "0%";
+                  return (
+                    " " +
+                    ctx.label +
+                    ": " +
+                    formatMoney(ctx.raw) +
+                    " (" +
+                    pct +
+                    ")"
+                  );
                 },
               },
             },
           },
         },
-      );
+      });
     });
   }
 
@@ -583,112 +516,6 @@
     });
   }
 
-  /* ── Cumulative Revenue (area chart) ──── */
-  function loadCumulativeRevenue() {
-    ajax("cumulative_revenue").done(function (res) {
-      if (!res.success) return;
-      var data = res.data;
-
-      if (!data.length) return;
-
-      var labels = data.map(function (r) {
-        return r.date_label;
-      });
-      var cumulative = data.map(function (r) {
-        return parseFloat(r.cumulative);
-      });
-      var daily = data.map(function (r) {
-        return parseFloat(r.daily_revenue);
-      });
-
-      if (charts.cumulative) charts.cumulative.destroy();
-
-      var ctx = $("#chart-cumulative-revenue")[0].getContext("2d");
-      var gradient = ctx.createLinearGradient(0, 0, 0, 300);
-      gradient.addColorStop(0, rgba("indigo", 0.25));
-      gradient.addColorStop(1, rgba("indigo", 0.02));
-
-      var gradient2 = ctx.createLinearGradient(0, 0, 0, 300);
-      gradient2.addColorStop(0, rgba("teal", 0.15));
-      gradient2.addColorStop(1, rgba("teal", 0.01));
-
-      charts.cumulative = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: rcDashboard.i18n.cumulative,
-              data: cumulative,
-              borderColor: rgba("indigo", 1),
-              backgroundColor: gradient,
-              fill: true,
-              tension: 0.4,
-              pointBackgroundColor: rgba("indigo", 1),
-              pointBorderColor: isDarkTheme() ? "#1a1d2e" : "#fff",
-              pointBorderWidth: 2,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-              borderWidth: 2.5,
-              yAxisID: "y",
-            },
-            {
-              label: rcDashboard.i18n.dailyRevenue,
-              data: daily,
-              borderColor: rgba("teal", 1),
-              backgroundColor: gradient2,
-              fill: true,
-              tension: 0.4,
-              pointBackgroundColor: rgba("teal", 1),
-              pointBorderColor: isDarkTheme() ? "#1a1d2e" : "#fff",
-              pointBorderWidth: 2,
-              pointRadius: 3,
-              pointHoverRadius: 5,
-              borderWidth: 2,
-              borderDash: [4, 3],
-              yAxisID: "y1",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
-          plugins: { legend: { position: "bottom" } },
-          scales: {
-            y: {
-              type: "linear",
-              position: "left",
-              beginAtZero: true,
-              grid: { color: getGridColor() },
-              ticks: {
-                color: getTextColor(),
-                callback: function (v) {
-                  return formatMoney(v);
-                },
-              },
-            },
-            y1: {
-              type: "linear",
-              position: "right",
-              beginAtZero: true,
-              grid: { drawOnChartArea: false },
-              ticks: {
-                color: getTextColor(),
-                callback: function (v) {
-                  return formatMoney(v);
-                },
-              },
-            },
-            x: {
-              grid: { display: false },
-              ticks: { color: getTextColor(), maxRotation: 45 },
-            },
-          },
-        },
-      });
-    });
-  }
 
   /* ── Top Buyers ───────────────────────── */
   function loadTopBuyers() {
@@ -732,26 +559,47 @@
   }
 
   /* ── Recent Transactions ──────────────── */
-  function loadRecentTransactions() {
-    ajax("recent_transactions").done(function (res) {
+  var txnSearchTimer = null;
+
+  function loadRecentTransactions(page) {
+    page = page || 1;
+    var search = ($("#rc-txn-search").val() || "").trim();
+    var status = $("#rc-txn-status").val() || "";
+
+    ajax("recent_transactions", {
+      search: search,
+      status: status,
+      txn_page: page,
+    }).done(function (res) {
       if (!res.success) return;
-      var data = res.data;
+      var result = res.data;
+      var data = result.rows || [];
       var $tbody = $("#table-recent-txns tbody");
+
       if (!data.length) {
         $tbody.html(
           '<tr><td colspan="5" class="rc-empty">' +
             rcDashboard.i18n.noData +
             "</td></tr>",
         );
+        $("#rc-txn-pagination").empty();
         return;
       }
+
       var rows = "";
       $.each(data, function (_, t) {
-        var statusClass = t.status === "completed" ? "completed" : "pending";
-        var statusLabel =
-          t.status === "completed"
-            ? rcDashboard.i18n.completed
-            : rcDashboard.i18n.pending;
+        var statusMap = {
+          completed: { cls: "completed", label: rcDashboard.i18n.completed },
+          processing: { cls: "active", label: "Procesando" },
+          "on-hold": { cls: "pending", label: "En espera" },
+          cancelled: { cls: "cancelled", label: "Cancelado" },
+          failed: { cls: "cancelled", label: "Fallido" },
+        };
+        var st = statusMap[t.status] || {
+          cls: "pending",
+          label: rcDashboard.i18n.pending,
+        };
+
         rows +=
           "<tr>" +
           "<td>" +
@@ -767,15 +615,75 @@
           formatMoney(t.amount_paid) +
           "</strong></td>" +
           '<td><span class="rc-badge rc-badge-' +
-          statusClass +
+          st.cls +
           '">' +
-          statusLabel +
+          st.label +
           "</span></td>" +
           "</tr>";
       });
       $tbody.html(rows);
+
+      // Pagination
+      var $pag = $("#rc-txn-pagination");
+      $pag.empty();
+      if (result.pages > 1) {
+        if (result.page > 1) {
+          $pag.append(
+            '<button class="rc-btn rc-btn-secondary rc-btn-sm rc-txn-page" data-page="' +
+              (result.page - 1) +
+              '">◀</button>',
+          );
+        }
+        $pag.append(
+          '<span style="font-size:12px;color:var(--rc-text-muted);">' +
+            result.page +
+            " / " +
+            result.pages +
+            " (" +
+            result.total +
+            ")</span>",
+        );
+        if (result.page < result.pages) {
+          $pag.append(
+            '<button class="rc-btn rc-btn-secondary rc-btn-sm rc-txn-page" data-page="' +
+              (result.page + 1) +
+              '">▶</button>',
+          );
+        }
+      }
     });
   }
+
+  // Search debounce
+  $(document).on("input", "#rc-txn-search", function () {
+    clearTimeout(txnSearchTimer);
+    txnSearchTimer = setTimeout(function () {
+      loadRecentTransactions(1);
+    }, 400);
+  });
+
+  // Status filter
+  $(document).on("change", "#rc-txn-status", function () {
+    loadRecentTransactions(1);
+  });
+
+  // Pagination clicks
+  $(document).on("click", ".rc-txn-page", function () {
+    loadRecentTransactions($(this).data("page"));
+  });
+
+  // Export transactions as Excel (CSV with BOM)
+  $(document).on("click", "#rc-export-txns", function (e) {
+    e.preventDefault();
+    var url =
+      rcDashboard.ajax_url +
+      "?" +
+      $.param({
+        action: "rc_export_transactions",
+        nonce: rcDashboard.nonce,
+      });
+    window.location.href = url;
+  });
 
   function escHtml(str) {
     var div = document.createElement("div");
@@ -786,15 +694,22 @@
   /* ── Init ─────────────────────────────── */
   function loadAll() {
     loadOverview();
-    loadRevenueByRaffle();
-    loadTicketsByRaffle();
-    loadNetProfit();
-    loadSalesTrend("daily");
+    loadMainTrend($(".rc-chip-active").data("period") || "daily");
     loadTopBuyers();
     loadRecentTransactions();
     loadRevenueVsPrize();
     loadPackagePopularity();
-    loadCumulativeRevenue();
+    
+    // Switch dynamic panels based on global vs single selection
+    var raffleId = parseInt($("#rc-raffle-filter").val()) || 0;
+    if (raffleId > 0) {
+        $(".rc-comparative-panel").hide();
+        $(".rc-single-panel").fadeIn();
+        loadRaffleProgress();
+    } else {
+        $(".rc-single-panel").hide();
+        $(".rc-comparative-panel").fadeIn();
+    }
   }
 
   $(function () {
@@ -814,7 +729,7 @@
     $(document).on("click", ".rc-chip", function () {
       $(".rc-chip").removeClass("rc-chip-active");
       $(this).addClass("rc-chip-active");
-      loadSalesTrend($(this).data("period"));
+      loadMainTrend($(this).data("period"));
     });
   });
 })(jQuery);

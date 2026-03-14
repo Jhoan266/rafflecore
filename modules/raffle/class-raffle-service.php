@@ -54,16 +54,22 @@ class RaffleCore_Raffle_Service {
     /**
      * Valida y prepara datos de formulario para crear/editar una rifa.
      */
-    public static function prepare_data( $post ) {
+    public static function prepare_data( $post, $raffle_id = 0 ) {
+        $ticket_digits = isset($post['ticket_digits']) ? absint($post['ticket_digits']) : 2;
+        $max_tickets = ($ticket_digits === 2) ? 99 : (($ticket_digits === 3) ? 999 : (($ticket_digits === 4) ? 9999 : 99999));
         $data = array(
             'title'         => sanitize_text_field( wp_unslash( $post['title'] ?? '' ) ),
             'description'   => sanitize_textarea_field( wp_unslash( $post['description'] ?? '' ) ),
             'prize_value'   => floatval( $post['prize_value'] ?? 0 ),
             'prize_image'   => esc_url_raw( wp_unslash( $post['prize_image'] ?? '' ) ),
-            'total_tickets' => absint( $post['total_tickets'] ?? 0 ),
+            'total_tickets' => ( $raffle_id && ! isset( $post['ticket_digits'] ) ) ? 0 : $max_tickets, // 0 means don't update in DB if not provided
+            'ticket_digits' => $ticket_digits,
             'ticket_price'  => floatval( $post['ticket_price'] ?? 0 ),
-            'draw_date'     => sanitize_text_field( wp_unslash( $post['draw_date'] ?? '' ) ),
-            'status'        => sanitize_text_field( wp_unslash( $post['status'] ?? 'active' ) ),
+            'draw_date'           => sanitize_text_field( wp_unslash( $post['draw_date'] ?? '' ) ),
+            'status'              => sanitize_text_field( wp_unslash( $post['status'] ?? 'active' ) ),
+            'type'                => sanitize_text_field( wp_unslash( $post['type'] ?? 'quantity' ) ),
+            'max_number'          => absint( $post['max_number'] ?? 0 ),
+            'countdown_threshold' => absint( $post['countdown_threshold'] ?? 0 ),
         );
 
         // Packages: "5:20000, 10:35000" → [{"qty":5,"price":20000}, ...]
@@ -84,15 +90,14 @@ class RaffleCore_Raffle_Service {
         }
         $data['packages'] = wp_json_encode( $packages );
 
-        // Lucky numbers: "12, 345, 6789" → [12, 345, 6789]
+        // Lucky numbers: "012, 345, 6789" → ["012", "345", "6789"]
         $lucky_raw = sanitize_text_field( wp_unslash( $post['lucky_numbers'] ?? '' ) );
         $lucky     = array();
         if ( ! empty( $lucky_raw ) ) {
             $parts = array_map( 'trim', explode( ',', $lucky_raw ) );
             foreach ( $parts as $num ) {
-                $n = absint( $num );
-                if ( $n > 0 ) {
-                    $lucky[] = $n;
+                if ( $num !== '' && ctype_digit( $num ) ) {
+                    $lucky[] = str_pad( $num, $ticket_digits, '0', STR_PAD_LEFT );
                 }
             }
         }
@@ -108,19 +113,13 @@ class RaffleCore_Raffle_Service {
             $data['custom_font_url'] = '';
         }
 
-        // Prize gallery: "url1, url2" → ["url1","url2"]
-        $gallery_raw = wp_unslash( $post['prize_gallery'] ?? '' );
-        $gallery     = array();
-        if ( ! empty( $gallery_raw ) ) {
-            $parts = array_map( 'trim', explode( ',', $gallery_raw ) );
-            foreach ( $parts as $url ) {
-                $clean = esc_url_raw( $url );
-                if ( $clean ) {
-                    $gallery[] = $clean;
-                }
-            }
-        }
-        $data['prize_gallery'] = wp_json_encode( $gallery );
+        // Color palette
+        $allowed_palettes = array( '', 'vibrant', 'ocean', 'sunset', 'neon' );
+        $palette = sanitize_text_field( wp_unslash( $post['color_palette'] ?? '' ) );
+        $data['color_palette'] = in_array( $palette, $allowed_palettes, true ) ? $palette : '';
+
+        // Min custom qty
+        $data['min_custom_qty'] = absint( $post['min_custom_qty'] ?? 0 );
 
         return $data;
     }

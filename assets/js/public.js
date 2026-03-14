@@ -35,11 +35,69 @@
             }
             // Actualizar máximo del selector de cantidad
             $(".rc-qty-input").attr("max", d.available);
+
+            // Actualizar tablero de selección si existe
+            if (d.sold_numbers && Array.isArray(d.sold_numbers)) {
+              d.sold_numbers.forEach(function (num) {
+                var $box = $('.rc-ticket-box[data-number="' + num + '"]');
+                if (!$box.hasClass("rc-ticket--sold")) {
+                  $box
+                    .removeClass("rc-ticket--available rc-ticket--selected")
+                    .addClass("rc-ticket--sold");
+                  // Si estaba seleccionado, quitarlo de la lista actual
+                  selectedNumbers = selectedNumbers.filter((n) => n !== num);
+                  updateSelectedBar();
+                }
+              });
+            }
           }
         },
       });
     }
   }
+
+  // ─── Number Selection Logic ─────────────
+  var selectedNumbers = [];
+  var ticketPrice = parseFloat($(".rc-progress-detail-number").eq(2).text().replace(/[^0-9.]/g, "")) || 0;
+
+  $(document).on("click", ".rc-ticket--available", function () {
+    var $box = $(this);
+    var num = $box.data("number");
+
+    if ($box.hasClass("rc-ticket--selected")) {
+      $box.removeClass("rc-ticket--selected");
+      selectedNumbers = selectedNumbers.filter((n) => n !== num);
+    } else {
+      $box.addClass("rc-ticket--selected");
+      selectedNumbers.push(num);
+    }
+
+    updateSelectedBar();
+  });
+
+  function updateSelectedBar() {
+    var $bar = $("#rc-selected-bar");
+    if (selectedNumbers.length > 0) {
+      $(".rc-selected-count").text(selectedNumbers.length);
+      var total = selectedNumbers.length * ticketPrice;
+      $(".rc-selected-price").text(rcPublic.currency + new Intl.NumberFormat().format(total));
+      $bar.fadeIn(300);
+    } else {
+      $bar.fadeOut(200);
+    }
+  }
+
+  $(document).on("click", "#rc-open-checkout-selectable", function (e) {
+    e.preventDefault();
+    if (selectedNumbers.length === 0) return;
+
+    var qty = selectedNumbers.length;
+    var price = qty * ticketPrice;
+    var numbersStr = selectedNumbers.join(",");
+
+    $("#rc-form-chosen-numbers").val(numbersStr);
+    openPurchaseModal(qty, price);
+  });
 
   // ─── Countdown Timer ────────────────────
   var $cd = $("#rc-countdown");
@@ -150,6 +208,11 @@
     );
     $("#rc-form-qty").val(qty);
     $("#rc-form-price").val(price);
+
+    // Reset chosen numbers if not coming from selectable grid
+    if (!$("#rc-form-chosen-numbers").val()) {
+        $("#rc-form-chosen-numbers").val("");
+    }
     $("#rc-purchase-loading").hide();
     $("#rc-submit-purchase").show().prop("disabled", false);
     previousFocus = document.activeElement;
@@ -309,6 +372,42 @@
     $modal.fadeIn(250, function () {
       $modal.find(".rc-modal-close").focus();
       trapFocus($modal);
+    });
+  }
+
+  // ─── Custom Quantity Purchase ───────────
+  var $customInput = $("#rc-custom-qty-input");
+  if ($customInput.length) {
+    var customPrice = parseInt($customInput.data("price"), 10) || 0;
+    var customMin = parseInt($customInput.data("min"), 10) || 1;
+
+    $customInput.on("input change", function () {
+      var val = parseInt($(this).val(), 10) || 0;
+      if (val < customMin) val = customMin;
+      var total = val * customPrice;
+      $("#rc-custom-total-price").text(
+        rcPublic.currency + new Intl.NumberFormat().format(total),
+      );
+    });
+
+    $(document).on("click", "#rc-custom-buy-btn", function (e) {
+      e.preventDefault();
+      var qty = parseInt($customInput.val(), 10) || 0;
+      if (qty < customMin) {
+        alert(
+          rcPublic.i18n.minQty
+            ? rcPublic.i18n.minQty.replace("%d", customMin)
+            : "Mínimo " + customMin + " boletos",
+        );
+        return;
+      }
+      var max = parseInt($customInput.attr("max"), 10);
+      if (qty > max) {
+        $customInput.val(max);
+        qty = max;
+      }
+      var price = qty * customPrice;
+      openPurchaseModal(qty, price);
     });
   }
 

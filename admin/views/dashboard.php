@@ -9,7 +9,12 @@
                 <option value="0"><?php esc_html_e( 'Resumen Global (Todas las rifas)', 'rafflecore' ); ?></option>
                 <?php
                 global $wpdb;
-                $raffles = $wpdb->get_results( "SELECT id, title FROM {$wpdb->prefix}rc_raffles WHERE status != 'deleted' ORDER BY created_at DESC" );
+                $raffles = $wpdb->get_results(
+                    "SELECT DISTINCT r.id, r.title FROM {$wpdb->prefix}rc_raffles r
+                     WHERE r.status != 'deleted'
+                        OR r.id IN (SELECT DISTINCT raffle_id FROM {$wpdb->prefix}rc_purchases)
+                     ORDER BY r.created_at DESC"
+                );
                 foreach ( $raffles as $r ) {
                     echo '<option value="' . esc_attr( $r->id ) . '">' . esc_html( $r->title ) . '</option>';
                 }
@@ -69,112 +74,123 @@
             📋 <span>—</span> <?php esc_html_e( 'Total Rifas', 'rafflecore' ); ?>
         </div>
         <div class="rc-kpi-pill" id="kpi-avg-price">
-            🏷️ <?php esc_html_e( 'Precio Promedio', 'rafflecore' ); ?>: $<span>—</span>
+            🏷️ <?php esc_html_e( 'Precio Promedio', 'rafflecore' ); ?>: <span>—</span>
         </div>
         <div class="rc-kpi-pill" id="kpi-month-trend">
-            <span class="rc-trend-arrow" id="kpi-trend-icon">📈</span> <?php esc_html_e( 'Este Mes', 'rafflecore' ); ?>: $<span>—</span>
+            <span class="rc-trend-arrow" id="kpi-trend-icon">📈</span> <?php esc_html_e( 'Este Mes', 'rafflecore' ); ?>: <span>—</span>
         </div>
     </div>
 
-    <!-- Charts Row 1: Revenue + Tickets -->
-    <div class="rc-dashboard-row rc-row-equal">
-        <div class="rc-panel">
-            <h2>📊 <?php esc_html_e( 'Ingresos por Rifa', 'rafflecore' ); ?></h2>
-            <div class="rc-chart-container">
-                <canvas id="chart-revenue-raffle"></canvas>
-            </div>
-        </div>
-        <div class="rc-panel">
-            <h2>🎫 <?php esc_html_e( 'Boletos Vendidos por Rifa', 'rafflecore' ); ?></h2>
-            <div class="rc-chart-container">
-                <canvas id="chart-tickets-raffle"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Row 2: Net Profit + Sales Trend -->
-    <div class="rc-dashboard-row rc-row-equal">
-        <div class="rc-panel">
-            <h2>💎 <?php esc_html_e( 'Ganancia Neta por Rifa', 'rafflecore' ); ?></h2>
-            <p class="rc-chart-subtitle"><?php esc_html_e( 'Ingresos menos el valor del premio', 'rafflecore' ); ?></p>
-            <div class="rc-chart-container">
-                <canvas id="chart-net-profit"></canvas>
-            </div>
-        </div>
-        <div class="rc-panel">
-            <h2>📈 <?php esc_html_e( 'Tendencia de Ventas', 'rafflecore' ); ?></h2>
+    <!-- Asymmetric Bento Row 1: 2fr 1fr -->
+    <div class="rc-bento-row rc-bento-70-30" style="margin-bottom: 20px;">
+        <!-- Col 1: Main Trend (Always Show) -->
+        <div class="rc-panel rc-panel-flex">
+            <h2>📈 <?php esc_html_e( 'Desempeño y Crecimiento', 'rafflecore' ); ?></h2>
+            <p class="rc-chart-subtitle"><?php esc_html_e( 'Evolución de ventas en el tiempo', 'rafflecore' ); ?></p>
             <div class="rc-chart-toolbar">
+                <button class="rc-chip" data-period="today"><?php esc_html_e( 'Hoy', 'rafflecore' ); ?></button>
                 <button class="rc-chip rc-chip-active" data-period="daily"><?php esc_html_e( 'Diario', 'rafflecore' ); ?></button>
+                <button class="rc-chip" data-period="weekly"><?php esc_html_e( 'Semanal', 'rafflecore' ); ?></button>
                 <button class="rc-chip" data-period="monthly"><?php esc_html_e( 'Mensual', 'rafflecore' ); ?></button>
                 <button class="rc-chip" data-period="annual"><?php esc_html_e( 'Anual', 'rafflecore' ); ?></button>
             </div>
-            <div class="rc-chart-container">
-                <canvas id="chart-sales-trend"></canvas>
+            <div class="rc-chart-container" style="flex: 1; min-height: 350px;">
+                <canvas id="chart-main-trend"></canvas>
+            </div>
+        </div>
+
+        <!-- Col 2: Dynamic Contextual Panel -->
+        <div class="rc-bento-col-stack">
+            <!-- Global View Ranking Panel (Hidden when filtering single raffle) -->
+            <div class="rc-panel rc-panel-flex rc-comparative-panel" style="height: 100%; margin-bottom: 0;">
+                <h2>👑 <?php esc_html_e( 'Compradores Frecuentes', 'rafflecore' ); ?></h2>
+                <div style="flex: 1; overflow-y: auto;">
+                    <table class="rc-table" id="table-top-buyers">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th><?php esc_html_e( 'Cliente', 'rafflecore' ); ?></th>
+                                <th><?php esc_html_e( 'Compras', 'rafflecore' ); ?></th>
+                                <th><?php esc_html_e( 'Boletos', 'rafflecore' ); ?></th>
+                                <th><?php esc_html_e( 'Gasto Total', 'rafflecore' ); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Loaded via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Single View Progress Panel (Only visible for one raffle) -->
+            <div class="rc-panel rc-panel-flex rc-single-panel" style="height: 100%; margin-bottom: 0; display: none;">
+                <h2>🎯 <?php esc_html_e( 'Progreso de Venta', 'rafflecore' ); ?></h2>
+                <p class="rc-chart-subtitle"><?php esc_html_e( 'Boletos vs Disponibles', 'rafflecore' ); ?></p>
+                <div class="rc-chart-container" style="flex: 1; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                     <canvas id="chart-raffle-progress"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Row 3: Top Buyers + Recent Transactions -->
-    <div class="rc-dashboard-row rc-row-equal">
-        <div class="rc-panel">
-            <h2>🏆 <?php esc_html_e( 'Top 10 Compradores', 'rafflecore' ); ?></h2>
-            <table class="rc-table" id="table-top-buyers">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th><?php esc_html_e( 'Nombre', 'rafflecore' ); ?></th>
-                        <th><?php esc_html_e( 'Compras', 'rafflecore' ); ?></th>
-                        <th><?php esc_html_e( 'Boletos', 'rafflecore' ); ?></th>
-                        <th><?php esc_html_e( 'Gastado', 'rafflecore' ); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="5" class="rc-empty">⏳ <?php esc_html_e( 'Cargando...', 'rafflecore' ); ?></td></tr>
-                </tbody>
-            </table>
+    <!-- Asymmetric Bento Row 2: 1fr 2fr -->
+    <div class="rc-bento-row rc-bento-30-70" style="margin-bottom: 20px;">
+        <!-- Col 1: Rentabilidad -->
+        <div class="rc-panel rc-panel-flex" style="text-align: center;">
+            <h2 style="text-align: left;">💎 <?php esc_html_e( 'Rentabilidad', 'rafflecore' ); ?></h2>
+            <p class="rc-chart-subtitle" style="text-align: left;"><?php esc_html_e( 'Costo premio vs Ganancia', 'rafflecore' ); ?></p>
+            <div class="rc-chart-container" style="flex: 1; min-height: 280px; max-width: 100%; margin: 0 auto;">
+                <canvas id="chart-revenue-vs-prize"></canvas>
+            </div>
         </div>
-        <div class="rc-panel">
-            <h2>🧾 <?php esc_html_e( 'Últimas Transacciones', 'rafflecore' ); ?></h2>
+        
+        <!-- Col 2: Preferencias Paquetes -->
+        <div class="rc-panel rc-panel-flex">
+            <h2>📦 <?php esc_html_e( 'Preferencias de Paquetes', 'rafflecore' ); ?></h2>
+            <p class="rc-chart-subtitle"><?php esc_html_e( 'Qué cantidades compran más los usuarios', 'rafflecore' ); ?></p>
+            <div class="rc-chart-container" style="flex: 1; min-height: 280px;">
+                <canvas id="chart-package-popularity"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row: Top Buyers + Recent Transactions -->
+    <div class="rc-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;">📝 <?php esc_html_e( 'Últimas Transacciones', 'rafflecore' ); ?></h2>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="rc-txn-search" class="rc-form-control" style="width: 250px;" placeholder="<?php esc_html_e( 'Buscar por nombre, correo, teléfono...', 'rafflecore' ); ?>">
+                <select id="rc-txn-status" class="rc-form-control rc-select" style="width: 150px;">
+                    <option value=""><?php esc_html_e( 'Todos los estados', 'rafflecore' ); ?></option>
+                    <option value="completed"><?php esc_html_e( 'Completado', 'rafflecore' ); ?></option>
+                    <option value="processing"><?php esc_html_e( 'Procesando', 'rafflecore' ); ?></option>
+                    <option value="on-hold"><?php esc_html_e( 'En espera', 'rafflecore' ); ?></option>
+                    <option value="cancelled"><?php esc_html_e( 'Cancelado', 'rafflecore' ); ?></option>
+                    <option value="failed"><?php esc_html_e( 'Fallido', 'rafflecore' ); ?></option>
+                </select>
+                <button id="rc-export-txns" class="rc-btn rc-btn-secondary">
+                    ⬇️ <?php esc_html_e( 'Exportar', 'rafflecore' ); ?>
+                </button>
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
             <table class="rc-table" id="table-recent-txns">
                 <thead>
                     <tr>
                         <th><?php esc_html_e( 'Rifa', 'rafflecore' ); ?></th>
                         <th><?php esc_html_e( 'Comprador', 'rafflecore' ); ?></th>
                         <th><?php esc_html_e( 'Boletos', 'rafflecore' ); ?></th>
-                        <th><?php esc_html_e( 'Total', 'rafflecore' ); ?></th>
+                        <th><?php esc_html_e( 'Pagado', 'rafflecore' ); ?></th>
                         <th><?php esc_html_e( 'Estado', 'rafflecore' ); ?></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="5" class="rc-empty">⏳ <?php esc_html_e( 'Cargando...', 'rafflecore' ); ?></td></tr>
+                    <!-- Loaded via AJAX -->
                 </tbody>
             </table>
         </div>
-    </div>
-    <!-- Charts Row 3: Revenue vs Prize + Package Popularity -->
-    <div class="rc-dashboard-row rc-row-equal">
-        <div class="rc-panel">
-            <h2>💎 <?php esc_html_e( 'Distribución Financiera', 'rafflecore' ); ?></h2>
-            <p class="rc-chart-subtitle"><?php esc_html_e( 'Ingresos destinados a premios vs ganancia neta', 'rafflecore' ); ?></p>
-            <div class="rc-chart-container" style="height:280px;">
-                <canvas id="chart-revenue-vs-prize"></canvas>
-            </div>
-        </div>
-        <div class="rc-panel">
-            <h2>📦 <?php esc_html_e( 'Popularidad de Paquetes', 'rafflecore' ); ?></h2>
-            <p class="rc-chart-subtitle"><?php esc_html_e( 'Qué paquetes de boletos se venden más', 'rafflecore' ); ?></p>
-            <div class="rc-chart-container" style="height:280px;">
-                <canvas id="chart-package-popularity"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Row 4: Cumulative Revenue (full width) -->
-    <div class="rc-panel">
-        <h2>💰 <?php esc_html_e( 'Ingresos Acumulados', 'rafflecore' ); ?></h2>
-        <p class="rc-chart-subtitle"><?php esc_html_e( 'Crecimiento total del negocio en el tiempo', 'rafflecore' ); ?></p>
-        <div class="rc-chart-container">
-            <canvas id="chart-cumulative-revenue"></canvas>
+        <div id="rc-txn-pagination" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 16px;">
+            <!-- Loaded via AJAX -->
         </div>
     </div>
 

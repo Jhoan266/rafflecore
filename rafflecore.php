@@ -66,6 +66,7 @@ require_once RAFFLECORE_PATH . 'modules/purchase/class-reservation-service.php';
 // New modules v3.0.0
 require_once RAFFLECORE_PATH . 'includes/class-rafflecore-rate-limiter.php';
 require_once RAFFLECORE_PATH . 'includes/class-rafflecore-logger.php';
+require_once RAFFLECORE_PATH . 'includes/class-rafflecore-currency.php';
 require_once RAFFLECORE_PATH . 'modules/coupon/class-coupon-model.php';
 require_once RAFFLECORE_PATH . 'modules/coupon/class-coupon-service.php';
 require_once RAFFLECORE_PATH . 'modules/webhook/class-webhook-service.php';

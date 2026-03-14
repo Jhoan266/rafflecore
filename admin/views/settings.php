@@ -6,8 +6,7 @@
         <div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Configuración guardada.', 'rafflecore' ); ?></p></div>
     <?php endif; ?>
 
-    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rc-form">
-        <input type="hidden" name="action" value="rc_admin_form">
+    <form method="post" action="" class="rc-form">
         <?php wp_nonce_field( 'rc_save_settings', 'rc_nonce' ); ?>
         <input type="hidden" name="rc_save_settings" value="1">
 
@@ -47,7 +46,48 @@
         </div>
 
         <div class="rc-panel">
-            <h2>📊 <?php esc_html_e( 'Información del Sistema', 'rafflecore' ); ?></h2>
+            <h2>🌍 <?php esc_html_e( 'Moneda y Conversión', 'rafflecore' ); ?></h2>
+            <p class="rc-help"><?php esc_html_e( 'Configura la moneda base de tu tienda y la moneda de visualización en el dashboard. Si son diferentes, el panel convertirá los valores automáticamente usando métricas interbancarias actualizadas.', 'rafflecore' ); ?></p>
+
+            <div class="rc-form-grid">
+                <div class="rc-form-group">
+                    <label for="rc_base_currency"><?php esc_html_e( 'Moneda Base (Tienda/Datos)', 'rafflecore' ); ?></label>
+                    <?php $b_cur = get_option( 'rafflecore_base_currency', 'COP' ); ?>
+                    <select id="rc_base_currency" name="rc_base_currency" class="rc-select">
+                        <option value="COP" <?php selected( $b_cur, 'COP' ); ?>>🇨🇴 COP — <?php esc_html_e( 'Peso Colombiano', 'rafflecore' ); ?></option>
+                        <option value="USD" <?php selected( $b_cur, 'USD' ); ?>>🇺🇸 USD — <?php esc_html_e( 'Dólar Estadounidense', 'rafflecore' ); ?></option>
+                        <option value="EUR" <?php selected( $b_cur, 'EUR' ); ?>>🇪🇺 EUR — Euro</option>
+                        <option value="MXN" <?php selected( $b_cur, 'MXN' ); ?>>🇲🇽 MXN — <?php esc_html_e( 'Peso Mexicano', 'rafflecore' ); ?></option>
+                        <option value="ARS" <?php selected( $b_cur, 'ARS' ); ?>>🇦🇷 ARS — <?php esc_html_e( 'Peso Argentino', 'rafflecore' ); ?></option>
+                        <option value="BRL" <?php selected( $b_cur, 'BRL' ); ?>>🇧🇷 BRL — <?php esc_html_e( 'Real Brasileño', 'rafflecore' ); ?></option>
+                        <option value="PEN" <?php selected( $b_cur, 'PEN' ); ?>>🇵🇪 PEN — <?php esc_html_e( 'Sol Peruano', 'rafflecore' ); ?></option>
+                        <option value="CLP" <?php selected( $b_cur, 'CLP' ); ?>>🇨🇱 CLP — <?php esc_html_e( 'Peso Chileno', 'rafflecore' ); ?></option>
+                        <option value="VES" <?php selected( $b_cur, 'VES' ); ?>>🇻🇪 VES — <?php esc_html_e( 'Bolívar Venezolano', 'rafflecore' ); ?></option>
+                    </select>
+                    <small class="rc-help"><?php esc_html_e('La moneda en la que se registran originalmente las compras.', 'rafflecore'); ?></small>
+                </div>
+                
+                <div class="rc-form-group">
+                    <label for="rc_currency"><?php esc_html_e( 'Moneda de Visualización (Dashboard)', 'rafflecore' ); ?></label>
+                    <?php $cur = get_option( 'rafflecore_currency', 'COP' ); ?>
+                    <select id="rc_currency" name="rc_currency" class="rc-select">
+                        <option value="COP" <?php selected( $cur, 'COP' ); ?>>🇨🇴 COP — <?php esc_html_e( 'Peso Colombiano', 'rafflecore' ); ?></option>
+                        <option value="USD" <?php selected( $cur, 'USD' ); ?>>🇺🇸 USD — <?php esc_html_e( 'Dólar Estadounidense', 'rafflecore' ); ?></option>
+                        <option value="EUR" <?php selected( $cur, 'EUR' ); ?>>🇪🇺 EUR — Euro</option>
+                        <option value="MXN" <?php selected( $cur, 'MXN' ); ?>>🇲🇽 MXN — <?php esc_html_e( 'Peso Mexicano', 'rafflecore' ); ?></option>
+                        <option value="ARS" <?php selected( $cur, 'ARS' ); ?>>🇦🇷 ARS — <?php esc_html_e( 'Peso Argentino', 'rafflecore' ); ?></option>
+                        <option value="BRL" <?php selected( $cur, 'BRL' ); ?>>🇧🇷 BRL — <?php esc_html_e( 'Real Brasileño', 'rafflecore' ); ?></option>
+                        <option value="PEN" <?php selected( $cur, 'PEN' ); ?>>🇵🇪 PEN — <?php esc_html_e( 'Sol Peruano', 'rafflecore' ); ?></option>
+                        <option value="CLP" <?php selected( $cur, 'CLP' ); ?>>🇨🇱 CLP — <?php esc_html_e( 'Peso Chileno', 'rafflecore' ); ?></option>
+                        <option value="VES" <?php selected( $cur, 'VES' ); ?>>🇻🇪 VES — <?php esc_html_e( 'Bolívar Venezolano', 'rafflecore' ); ?></option>
+                    </select>
+                    <small class="rc-help"><?php esc_html_e('A esta moneda se convertirán los valores en las estadísticas y reportes.', 'rafflecore'); ?></small>
+                </div>
+            </div>
+        </div>
+
+        <div class="rc-panel">
+            <h2>�📊 <?php esc_html_e( 'Información del Sistema', 'rafflecore' ); ?></h2>
             <table class="rc-info-table">
                 <tr><th><?php esc_html_e( 'Versión del Plugin', 'rafflecore' ); ?></th><td><?php echo esc_html( RAFFLECORE_VERSION ); ?></td></tr>
                 <tr><th><?php esc_html_e( 'Modo Actual', 'rafflecore' ); ?></th><td><span class="rc-badge rc-badge-active"><?php echo esc_html( ucfirst( get_option( 'rafflecore_mode', 'local' ) ) ); ?></span></td></tr>

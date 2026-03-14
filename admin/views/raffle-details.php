@@ -131,9 +131,8 @@ $pkgs     = json_decode( $raffle->packages, true );
             <tbody>
                 <?php foreach ( $purchases as $p ) :
                     $tickets = RaffleCore_Ticket_Model::get_by_purchase( $p->id );
-                    $ticket_numbers = array_map( function( $t ) use ( $raffle ) {
-                        return str_pad( $t->ticket_number, strlen( (string) $raffle->total_tickets ), '0', STR_PAD_LEFT );
-                    }, $tickets );
+                    $digits = isset($raffle->ticket_digits) ? (int)$raffle->ticket_digits : null;
+                    $ticket_numbers = RaffleCore_Ticket_Service::format_numbers(array_map(function($t){return $t->ticket_number;}, $tickets), ['digits'=>$digits]);
                 ?>
                 <tr>
                     <td><strong><?php echo esc_html( $p->buyer_name ); ?></strong></td>

@@ -24,13 +24,17 @@ class RaffleCore_Purchase_Service {
             return new WP_Error( 'invalid_email', __( 'Correo electrónico no válido.', 'rafflecore' ) );
         }
 
-        $packages = json_decode( $raffle->packages, true );
-        if ( is_array( $packages ) && count( $packages ) > 0 ) {
-            $valid_qtys = array_map( function( $pkg ) {
-                return is_array( $pkg ) ? ( $pkg['qty'] ?? 0 ) : (int) $pkg;
-            }, $packages );
-            if ( ! in_array( $quantity, $valid_qtys, true ) ) {
-                return new WP_Error( 'invalid_package', __( 'Paquete de boletos no válido.', 'rafflecore' ) );
+        $type = isset( $raffle->type ) ? $raffle->type : 'quantity';
+
+        if ( $type === 'quantity' ) {
+            $packages = json_decode( $raffle->packages, true );
+            if ( is_array( $packages ) && count( $packages ) > 0 ) {
+                $valid_qtys = array_map( function( $pkg ) {
+                    return is_array( $pkg ) ? ( $pkg['qty'] ?? 0 ) : (int) $pkg;
+                }, $packages );
+                if ( ! in_array( $quantity, $valid_qtys, true ) ) {
+                    return new WP_Error( 'invalid_package', __( 'Paquete de boletos no válido.', 'rafflecore' ) );
+                }
             }
         }
 

@@ -67,8 +67,8 @@ class RaffleCore_Remote_Provider implements RaffleCore_Data_Provider {
 
     // ─── TICKETS ───────────────────────────────────────────────
 
-    public function generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email ) {
-        return $this->api_call( 'POST', "/raffles/{$raffle_id}/tickets", compact( 'purchase_id', 'quantity', 'buyer_email' ) );
+    public function generate_tickets( $raffle_id, $purchase_id, $quantity, $buyer_email, $specific_numbers = array() ) {
+        return $this->api_call( 'POST', "/raffles/{$raffle_id}/tickets", compact( 'purchase_id', 'quantity', 'buyer_email', 'specific_numbers' ) );
     }
 
     public function get_tickets_by_purchase( $purchase_id ) {
@@ -77,6 +77,10 @@ class RaffleCore_Remote_Provider implements RaffleCore_Data_Provider {
 
     public function get_tickets_by_raffle( $raffle_id ) {
         return $this->api_call( 'GET', "/raffles/{$raffle_id}/tickets" );
+    }
+
+    public function get_used_numbers( $raffle_id ) {
+        return $this->api_call( 'GET', "/raffles/{$raffle_id}/used-numbers" );
     }
 
     // ─── DRAW ───────────────────────────────────────────────────

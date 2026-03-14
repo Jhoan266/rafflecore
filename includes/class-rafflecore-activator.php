@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 class RaffleCore_Activator {
 
-    const DB_VERSION = '3.3.0';
+    const DB_VERSION = '3.5.0';
 
     public static function activate( $network_wide = false ) {
         if ( is_multisite() && $network_wide ) {
@@ -124,6 +124,48 @@ class RaffleCore_Activator {
                 $wpdb->query( "ALTER TABLE {$t_log} ADD COLUMN `entry_hash` varchar(64) DEFAULT '' AFTER `ip_address`" );
             }
         }
+
+        // v3.3 → v3.4: Añadir type y max_number a rc_raffles para rifas por selección
+        if ( version_compare( $from_version, '3.4.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) ) {
+                if ( ! in_array( 'type', $raffle_cols, true ) ) {
+                    $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `type` varchar(20) NOT NULL DEFAULT 'quantity' AFTER `status`" );
+                }
+                if ( ! in_array( 'max_number', $raffle_cols, true ) ) {
+                    $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `max_number` int(11) NOT NULL DEFAULT 0 AFTER `type`" );
+                }
+            }
+        }
+
+        // v3.4.0 → v3.4.1: Añadir countdown_threshold a rc_raffles
+        if ( version_compare( $from_version, '3.4.1', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'countdown_threshold', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `countdown_threshold` int(3) NOT NULL DEFAULT 0 AFTER `max_number`" );
+            }
+        }
+
+        // v3.4.1 → v3.4.2: Añadir ticket_digits a rc_raffles
+        if ( version_compare( $from_version, '3.4.2', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'ticket_digits', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `ticket_digits` int(1) NOT NULL DEFAULT 2 AFTER `total_tickets`" );
+            }
+        }
+
+        // v3.4.2 → v3.5.0: Añadir color_palette y min_custom_qty a rc_raffles
+        if ( version_compare( $from_version, '3.5.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) ) {
+                if ( ! in_array( 'color_palette', $raffle_cols, true ) ) {
+                    $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `color_palette` varchar(20) DEFAULT '' AFTER `prize_gallery`" );
+                }
+                if ( ! in_array( 'min_custom_qty', $raffle_cols, true ) ) {
+                    $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `min_custom_qty` int(11) NOT NULL DEFAULT 0 AFTER `color_palette`" );
+                }
+            }
+        }
     }
 
     /**
@@ -157,17 +199,23 @@ class RaffleCore_Activator {
             prize_value decimal(12,2) NOT NULL DEFAULT 0,
             prize_image varchar(500) DEFAULT '',
             total_tickets int(11) NOT NULL DEFAULT 0,
+            ticket_digits int(1) NOT NULL DEFAULT 2,
             sold_tickets int(11) NOT NULL DEFAULT 0,
             ticket_price decimal(12,2) NOT NULL DEFAULT 0,
             packages text,
             draw_date datetime DEFAULT NULL,
             status varchar(20) NOT NULL DEFAULT 'active',
+            type varchar(20) NOT NULL DEFAULT 'quantity',
+            max_number int(11) NOT NULL DEFAULT 0,
+            countdown_threshold int(3) NOT NULL DEFAULT 0,
             winner_ticket_id bigint(20) UNSIGNED DEFAULT NULL,
             wc_product_id bigint(20) UNSIGNED DEFAULT NULL,
             lucky_numbers text DEFAULT NULL,
             font_family varchar(100) DEFAULT '',
             custom_font_url varchar(500) DEFAULT '',
             prize_gallery text DEFAULT NULL,
+            color_palette varchar(20) DEFAULT '',
+            min_custom_qty int(11) NOT NULL DEFAULT 0,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY status (status),

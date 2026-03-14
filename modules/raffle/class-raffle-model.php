@@ -65,45 +65,127 @@ class RaffleCore_Raffle_Model {
         global $wpdb;
 
         $defaults = array(
-            'title'         => '',
-            'description'   => '',
-            'prize_value'   => 0,
-            'prize_image'   => '',
-            'total_tickets' => 0,
-            'sold_tickets'  => 0,
-            'ticket_price'  => 0,
-            'packages'      => '[]',
-            'draw_date'     => null,
-            'status'        => 'active',
-            'font_family'   => '',
-            'custom_font_url' => '',
-            'created_at'    => current_time( 'mysql' ),
+            'title'               => '',
+            'description'         => '',
+            'prize_value'         => 0,
+            'prize_image'         => '',
+            'total_tickets'       => 0,
+            'ticket_digits'       => 2,
+            'sold_tickets'        => 0,
+            'ticket_price'        => 0,
+            'packages'            => '[]',
+            'lucky_numbers'       => '[]',
+            'prize_gallery'       => '[]',
+            'draw_date'           => null,
+            'status'              => 'active',
+            'type'                => 'quantity',
+            'max_number'          => 0,
+            'countdown_threshold' => 0,
+            'font_family'         => '',
+            'custom_font_url'     => '',
+            'color_palette'       => '',
+            'min_custom_qty'      => 0,
+            'created_at'          => current_time( 'mysql' ),
         );
 
         $data = wp_parse_args( $data, $defaults );
 
-        $wpdb->insert( self::table(), $data, array(
-            '%s', '%s', '%f', '%s', '%d', '%d', '%f', '%s', '%s', '%s', '%s', '%s', '%s',
-        ) );
+        // Ensure we only have keys that exist in defaults to avoid DB errors
+        $data = array_intersect_key( $data, $defaults );
 
-        return $wpdb->insert_id ?: new WP_Error( 'db_error', __( 'Error al crear la rifa.', 'rafflecore' ) );
+        // Define formats explicitly for each key to avoid mismatch
+        $formats = array(
+            'title'               => '%s',
+            'description'         => '%s',
+            'prize_value'         => '%f',
+            'prize_image'         => '%s',
+            'total_tickets'       => '%d',
+            'ticket_digits'       => '%d',
+            'sold_tickets'        => '%d',
+            'ticket_price'        => '%f',
+            'packages'            => '%s',
+            'lucky_numbers'       => '%s',
+            'prize_gallery'       => '%s',
+            'draw_date'           => '%s',
+            'status'              => '%s',
+            'type'                => '%s',
+            'max_number'          => '%d',
+            'countdown_threshold' => '%d',
+            'font_family'         => '%s',
+            'custom_font_url'     => '%s',
+            'color_palette'       => '%s',
+            'min_custom_qty'      => '%d',
+            'created_at'          => '%s',
+        );
+
+        // Sort data and formats to be in the same order
+        $final_data = array();
+        $final_formats = array();
+        foreach ( $formats as $key => $fmt ) {
+            if ( isset( $data[ $key ] ) ) {
+                $final_data[ $key ] = $data[ $key ];
+                $final_formats[]    = $fmt;
+            }
+        }
+
+        $wpdb->insert( self::table(), $final_data, $final_formats );
+
+        return $wpdb->insert_id ?: new WP_Error( 'db_error', __( 'Error al crear la rifa en la base de datos.', 'rafflecore' ) );
     }
 
     public static function update( $id, $data ) {
         global $wpdb;
 
-        $formats = array();
+        // Define expected formats for all possible columns
+        $all_formats = array(
+            'title'               => '%s',
+            'description'         => '%s',
+            'prize_value'         => '%f',
+            'prize_image'         => '%s',
+            'total_tickets'       => '%d',
+            'ticket_digits'       => '%d',
+            'sold_tickets'        => '%d',
+            'ticket_price'        => '%f',
+            'packages'            => '%s',
+            'lucky_numbers'       => '%s',
+            'prize_gallery'       => '%s',
+            'draw_date'           => '%s',
+            'status'              => '%s',
+            'type'                => '%s',
+            'max_number'          => '%d',
+            'countdown_threshold' => '%d',
+            'winner_ticket_id'    => '%d',
+            'wc_product_id'       => '%d',
+            'font_family'         => '%s',
+            'custom_font_url'     => '%s',
+            'color_palette'       => '%s',
+            'min_custom_qty'      => '%d',
+            'created_at'          => '%s',
+        );
+
+        $final_data = array();
+        $final_formats = array();
+
         foreach ( $data as $key => $value ) {
-            if ( in_array( $key, array( 'prize_value', 'ticket_price' ), true ) ) {
-                $formats[] = '%f';
-            } elseif ( in_array( $key, array( 'total_tickets', 'sold_tickets', 'winner_ticket_id' ), true ) ) {
-                $formats[] = '%d';
-            } else {
-                $formats[] = '%s';
+            if ( isset( $all_formats[ $key ] ) ) {
+                $final_data[ $key ] = $value;
+                $final_formats[]    = $all_formats[ $key ];
             }
         }
 
-        return $wpdb->update( self::table(), $data, array( 'id' => $id ), $formats, array( '%d' ) );
+        if ( empty( $final_data ) ) {
+            return 0;
+        }
+
+        $result = $wpdb->update( 
+            self::table(), 
+            $final_data, 
+            array( 'id' => $id ), 
+            $final_formats, 
+            array( '%d' ) 
+        );
+
+        return ( false === $result ) ? new WP_Error( 'db_error', $wpdb->last_error ) : $result;
     }
 
     public static function delete( $id ) {
