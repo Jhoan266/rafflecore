@@ -839,7 +839,7 @@
     flex-wrap: wrap;
     margin-bottom: 36px;
     padding: 22px 28px;
-    background: rgba(108, 92, 231, .04);
+    background: var(--rc-bg-soft);
     border-radius: var(--rc-radius);
 }
 
@@ -959,7 +959,7 @@
     background-color: #fff;
     border-color: var(--rc-primary);
     outline: none;
-    box-shadow: 0 0 0 4px rgba(108, 92, 231, .15);
+    box-shadow: 0 0 0 4px var(--rc-bg-soft);
 }
 
 .rc-field input::placeholder {
@@ -1001,7 +1001,7 @@
 
 .rc-btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(108,92,231,.35);
+    box-shadow: 0 8px 28px rgba(var(--rc-shadow-rgb), 0.35);
 }
 
 .rc-btn-submit:active {
@@ -1546,66 +1546,54 @@
     background: linear-gradient(135deg, #ff9f43 0%, #e17055 50%, #c0392b 100%);
     box-shadow: 0 30px 60px rgba(225, 112, 85, 0.15);
 }
-.rc-palette-sunset .rc-t2-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(225, 112, 85, 0.4) 40px, rgba(192, 57, 43, 0.9) 120px);
+/* Sunset — Naranja / Dorado */
+.rc-palette-sunset {
+    --rc-primary: #e17055;
+    --rc-primary-dark: #d35400;
+    --rc-accent: #fdcb6e;
+    --rc-shadow-rgb: 225, 112, 85;
+    --rc-bg-soft: rgba(225, 112, 85, 0.05);
+    --rc-gradient: linear-gradient(135deg, #ff9f43 0%, #e17055 100%);
+    --rc-countdown-bg: linear-gradient(135deg, #2d1a0a 0%, #4a270e 100%);
+}
+
+.rc-palette-sunset .rc-t2-hero-body,
+.rc-palette-sunset .rc-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(var(--rc-shadow-rgb), 0.4) 40px, rgba(var(--rc-shadow-rgb), 0.9) 120px);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
 }
-.rc-palette-sunset .rc-hero {
-    background: linear-gradient(135deg, #ff9f43 0%, #e17055 50%, #c0392b 100%);
-}
-.rc-palette-sunset .rc-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(225, 112, 85, 0.7) 30px, rgba(192, 57, 43, 1) 100%);
-}
-.rc-palette-sunset .rc-t2-meta { background: rgba(255, 159, 67, 0.15); color: #fff; }
-.rc-palette-sunset .rc-t2-cd-number {
-    background: linear-gradient(180deg, #ff9f43 0%, #e17055 100%) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 25px rgba(225, 112, 85, 0.3) !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-}
+
 /* Neon — Verde / Lima */
 .rc-palette-neon {
     --rc-primary: #00b894;
     --rc-primary-dark: #00a381;
     --rc-accent: #55efc4;
-    --rc-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 24px rgba(0,184,148,.06);
-    --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(0,184,148,.10);
-    --rc-shadow-hover: 0 12px 40px rgba(0,184,148,.18);
+    --rc-shadow-rgb: 0, 184, 148;
+    --rc-bg-soft: rgba(0, 184, 148, 0.05);
+    --rc-gradient: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+    --rc-countdown-bg: linear-gradient(135deg, #0a2d1a 0%, #0e4a27 100%);
 }
-.rc-palette-neon .rc-t2-hero {
-    background: linear-gradient(135deg, #55efc4 0%, #00b894 50%, #009432 100%);
-    box-shadow: 0 30px 60px rgba(0, 184, 148, 0.15);
-}
-.rc-palette-neon .rc-t2-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(0, 184, 148, 0.4) 40px, rgba(0, 148, 50, 0.9) 120px);
+
+.rc-palette-neon .rc-t2-hero-body,
+.rc-palette-neon .rc-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(var(--rc-shadow-rgb), 0.4) 40px, rgba(var(--rc-shadow-rgb), 0.9) 120px);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
 }
-.rc-palette-neon .rc-hero {
-    background: linear-gradient(135deg, #55efc4 0%, #00b894 50%, #009432 100%);
-}
-.rc-palette-neon .rc-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(0, 184, 148, 0.7) 30px, rgba(0, 148, 50, 1) 100%);
-}
-.rc-palette-neon .rc-t2-meta { background: rgba(85, 239, 196, 0.15); color: #fff; }
-.rc-palette-neon .rc-t2-cd-number {
-    background: linear-gradient(180deg, #55efc4 0%, #00b894 100%) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 25px rgba(0, 184, 148, 0.3) !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
-}
 
-/* Galaxy — Azul profundo / Morado / Magenta */
+/* Galaxy — Morado / Magenta */
 .rc-palette-galaxy {
     --rc-primary: #7c3aed;
-    --rc-primary-dark: #4c1d95;
+    --rc-primary-dark: #2a0d6b;
     --rc-accent: #ec4899;
-    --rc-bg: #0d0821;
-    --rc-card-bg: rgba(255,255,255,.04);
+    --rc-shadow-rgb: 124, 58, 237;
+    --rc-bg-soft: rgba(124, 58, 237, 0.05);
+    --rc-gradient: linear-gradient(160deg, #7c3aed 0%, #ec4899 100%);
+    --rc-countdown-bg: radial-gradient(circle at center, #1e0b4a, #0d0821);
+    --rc-card-bg: rgba(255, 255, 255, 0.03);
     --rc-text: #e2d9f3;
     --rc-text-muted: #a78bca;
-    --rc-shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 24px rgba(124,58,237,.2);
-    --rc-shadow-lg: 0 8px 40px rgba(0,0,0,.5), 0 20px 80px rgba(124,58,237,.35);
-    --rc-shadow-hover: 0 16px 60px rgba(236,72,153,.4), 0 4px 20px rgba(124,58,237,.5);
 }
 
 /* Galaxy: fondo del contenedor — nebulosa multi-capa */
@@ -1626,7 +1614,8 @@
     box-shadow: 0 0 80px rgba(124,58,237,.4), 0 0 30px rgba(236,72,153,.2);
 }
 
-.rc-palette-galaxy .rc-hero-body {
+.rc-palette-galaxy .rc-hero-body,
+.rc-palette-galaxy .rc-t2-hero-body {
     background:
         radial-gradient(ellipse 80% 60% at 0% 100%, rgba(236,72,153,.25) 0%, transparent 60%),
         linear-gradient(160deg, #2a0d6b 0%, #1e0b4a 100%);
@@ -1692,20 +1681,15 @@
 /* ============================================
    Matte Fusion Palette (Premium Dark Navy)
    ============================================ */
+/* Matte Fusion — Premium Dark Navy */
 .rc-palette-matte-fusion {
     --rc-primary: #4f46e5;
     --rc-primary-dark: #1e1b4b;
     --rc-accent: #818cf8;
-    --rc-bg: #ffffff;
-    --rc-card-bg: rgba(255, 255, 255, 0.03);
-    --rc-text: #f8fafc;
-    --rc-text-muted: #94a3b8;
-    --rc-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    --rc-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.2);
-}
-
-.rc-palette-matte-fusion.rc-raffle {
-    background: #ffffff;
+    --rc-shadow-rgb: 79, 70, 229;
+    --rc-bg-soft: rgba(79, 70, 229, 0.05);
+    --rc-gradient: linear-gradient(160deg, #4f46e5 0%, #1e1b4b 100%);
+    --rc-countdown-bg: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
 }
 
 /* Hero Section override for Matte Fusion */
@@ -1733,12 +1717,11 @@
 .rc-palette-matte-fusion .rc-single-buy,
 .rc-palette-matte-fusion .rc-countdown-section,
 .rc-palette-matte-fusion .rc-custom-qty-section {
-    background: rgba(30, 27, 75, 0.04);
-    border: 1px solid rgba(79, 70, 229, 0.1);
+    background: var(--rc-bg-soft);
+    border: 1px solid rgba(var(--rc-shadow-rgb), 0.1);
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
-    color: #1e1b4b;
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12); /* Reference shadow */
+    box-shadow: var(--rc-shadow-lg);
     border-radius: 32px;
 }
 
@@ -2790,27 +2773,29 @@
 
     /* Theme 1 & 2 Countdown scaling */
     .rc-cd-item, .rc-t2-cd-item {
-        min-width: 65px !important;
-        padding: 8px 4px !important;
+        min-width: 58px !important;
+        padding: 6px 2px !important;
     }
     
     .rc-cd-num, .rc-t2-cd-number {
-        font-size: 20px !important;
-        padding: 8px 6px !important;
+        font-size: 18px !important;
+        padding: 10px 4px !important;
+        border-radius: 8px !important;
     }
     
     .rc-cd-label, .rc-t2-cd-label {
         font-size: 8px !important;
+        margin-top: 4px !important;
     }
     
     .rc-cd-sep, .rc-t2-cd-sep {
-        font-size: 18px !important;
-        padding-bottom: 12px !important;
+        font-size: 16px !important;
+        padding-bottom: 10px !important;
     }
 
     .rc-countdown, .rc-t2-countdown {
-        gap: 6px !important;
-        padding: 16px !important;
+        gap: 4px !important;
+        padding: 12px 6px !important;
     }
 
     /* Column layout adjustments */
