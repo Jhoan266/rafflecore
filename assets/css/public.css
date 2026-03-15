@@ -209,15 +209,15 @@
 .rc-hero-image {
     position: relative;
     overflow: hidden;
+    aspect-ratio: 16 / 9; /* Landscape proportion for Desktop */
+    background: var(--rc-bg-3);
 }
 
 .rc-hero-image img {
     width: 100% !important;
-    height: auto !important;
-    max-height: 600px;
-    object-fit: contain !important;
+    height: 100% !important;
+    object-fit: cover !important; /* Fill the entire area */
     display: block !important;
-    background: var(--rc-bg-3);
     transition: none !important;
 }
 
@@ -2808,6 +2808,10 @@
    Mobile Responsiveness: Countdown & Layout
    ============================================ */
 @media (max-width: 600px) {
+    .rc-hero-image {
+        aspect-ratio: 4 / 5 !important;
+    }
+
     /* Theme 1 & 2 Countdown scaling */
     .rc-cd-item, .rc-t2-cd-item {
         min-width: 65px !important;
