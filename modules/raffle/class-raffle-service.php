@@ -71,6 +71,7 @@ class RaffleCore_Raffle_Service {
             'type'                => sanitize_text_field( wp_unslash( $post['type'] ?? 'quantity' ) ),
             'max_number'          => absint( $post['max_number'] ?? 0 ),
             'countdown_threshold' => absint( $post['countdown_threshold'] ?? 0 ),
+            'lucky_numbers_text'  => sanitize_text_field( wp_unslash( $post['lucky_numbers_text'] ?? '' ) ),
         );
 
         // Packages: "5:20000, 10:35000" → [{"qty":5,"price":20000}, ...]

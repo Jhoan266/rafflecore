@@ -2482,13 +2482,14 @@
 }
 .rc-t2-modal-content {
     background: #fff;
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 32px 28px 28px;
     max-width: 440px;
-    width: 100%;
+    width: 90%;
     margin: 0 auto;
     position: relative;
-    box-shadow: 0 24px 60px rgba(0,0,0,.25);
+    box-shadow: 0 24px 80px rgba(0,0,0,.25);
+    overflow: hidden; /* For header border-radius */
 }
 .rc-t2-modal-close {
     position: absolute;
@@ -2503,16 +2504,23 @@
     padding: 4px 8px;
 }
 .rc-t2-modal-close:hover { color: #1a1a2e; }
+.rc-t2-modal-header {
+    background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
+    padding: 32px 28px;
+    text-align: center;
+    margin: -32px -28px 24px;
+    color: #fff;
+}
 .rc-t2-modal-header h3 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
-    color: #1a1a2e;
+    color: #fff !important;
     margin: 0 0 6px;
 }
 .rc-t2-modal-summary {
     font-size: 14px;
-    color: #64748b;
-    margin: 0 0 20px;
+    color: rgba(255,255,255,0.9) !important;
+    margin: 0;
 }
 .rc-t2-form-group {
     margin-bottom: 16px;
@@ -2828,5 +2836,57 @@
 
     .rc-theme1 .rc-meta {
         font-size: 12px !important;
+    }
+
+    /* Purchase Modal Responsiveness (T1 & T2) */
+    .rc-modal, .rc-t2-modal {
+        padding: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .rc-modal-content, .rc-t2-modal-content {
+        padding: 24px 20px 20px !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        border-radius: 16px !important;
+    }
+
+    .rc-t2-modal-header {
+        margin: -24px -20px 20px !important;
+        padding: 24px 20px !important;
+    }
+
+    .rc-t2-modal-header h3 {
+        font-size: 20px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .rc-t2-modal-summary {
+        font-size: 13px !important;
+    }
+
+    .rc-t2-form-group {
+        margin-bottom: 12px !important;
+    }
+
+    .rc-t2-form-group label {
+        font-size: 11px !important;
+        margin-bottom: 4px !important;
+        text-transform: uppercase;
+    }
+
+    .rc-t2-form-group input {
+        padding: 10px 12px !important;
+        font-size: 14px !important;
+        background-color: #f8fafc !important; /* Lighter bg for better contrast on mobile */
+    }
+
+    .rc-t2-coupon-btn, .rc-t2-submit-btn {
+        padding: 12px !important;
+        font-size: 15px !important;
+        border-radius: 10px !important;
     }
 }

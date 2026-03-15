@@ -47,18 +47,18 @@
             },
             success: function(res) {
                 $('#rc-tickets-loading').hide();
-                if (!res.length) {
+                if (!res || !res.length) {
                     $('#rc-tickets-empty').show();
                     return;
                 }
                 var html = '';
                 res.forEach(function(group) {
-                    html += '<div style="background:#f8f9fa;border-radius:12px;padding:20px;margin-bottom:16px;">';
-                    html += '<h3 style="margin:0 0 8px;">' + $('<span>').text(group.raffle).html() + '</h3>';
-                    html += '<p style="color:#666;margin:0 0 12px;">' + group.tickets.length + ' <?php echo esc_js( __( 'boletos', 'rafflecore' ) ); ?></p>';
+                    html += '<div style="background:#f8f9fa;border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid #764ba2;">';
+                    html += '<h3 style="margin:0 0 8px;color:#333;">' + $('<span>').text(group.raffle).html() + '</h3>';
+                    html += '<p style="color:#666;margin:0 0 12px;font-size:14px;">' + group.tickets.length + ' <?php echo esc_js( __( 'boletos', 'rafflecore' ) ); ?></p>';
                     html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
                     group.tickets.forEach(function(t) {
-                        html += '<span style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:6px 14px;border-radius:8px;font-weight:700;">#' + $('<span>').text(t).html() + '</span>';
+                        html += '<span style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:6px 14px;border-radius:8px;font-weight:700;font-size:16px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">#' + $('<span>').text(t).html() + '</span>';
                     });
                     html += '</div></div>';
                 });

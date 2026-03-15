@@ -120,6 +120,22 @@
     $(this).hide();
   });
 
+  // ─── Vacation Logo Uploader ─────────────
+  $(document).on("click", "#rc_vacation_logo_btn", function (e) {
+    e.preventDefault();
+    var frame = wp.media({
+      title: "Seleccionar Logo",
+      button: { text: "Usar este logo" },
+      multiple: false,
+      library: { type: "image" },
+    });
+    frame.on("select", function () {
+      var attachment = frame.state().get("selection").first().toJSON();
+      $("#rc_vacation_logo").val(attachment.url);
+    });
+    frame.open();
+  });
+
   // ─── Draw Button ────────────────────────
   $(document).on("click", "#rc-draw-btn", function (e) {
     e.preventDefault();

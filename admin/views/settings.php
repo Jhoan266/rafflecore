@@ -101,7 +101,71 @@
         </div>
 
         <div class="rc-panel">
-            <h2>�📊 <?php esc_html_e( 'Información del Sistema', 'rafflecore' ); ?></h2>
+            <h2><?php esc_html_e( 'Modo Vacaciones', 'rafflecore' ); ?></h2>
+            <p class="rc-help"><?php esc_html_e( 'Cuando está activado, las rifas inactivas mostrarán un cartel elegante con tu logo y un mensaje personalizado.', 'rafflecore' ); ?></p>
+
+            <div class="rc-form-grid">
+                <div class="rc-form-group rc-col-full">
+                    <label>
+                        <input type="checkbox" name="rc_vacation_mode" value="yes" <?php checked( get_option( 'rafflecore_vacation_mode', 'no' ), 'yes' ); ?>>
+                        <?php esc_html_e( 'Activar modo vacaciones', 'rafflecore' ); ?>
+                    </label>
+                </div>
+
+                <div class="rc-form-group rc-col-full">
+                    <label><?php esc_html_e( 'Logo', 'rafflecore' ); ?></label>
+                    <?php $logo_url = get_option( 'rafflecore_vacation_logo', '' ); ?>
+                    <input type="hidden" id="rc_vacation_logo" name="rc_vacation_logo" value="<?php echo esc_url( $logo_url ); ?>">
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <div id="rc-vacation-preview" style="min-width:80px;min-height:60px;background:#222;border-radius:8px;padding:8px;display:inline-flex;align-items:center;justify-content:center;">
+                            <?php if ( $logo_url ) : ?>
+                                <img src="<?php echo esc_url( $logo_url ); ?>" alt="Logo" style="max-height:70px;max-width:180px;">
+                            <?php else : ?>
+                                <span style="color:#888;font-size:13px;"><?php esc_html_e( 'Sin logo', 'rafflecore' ); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div>
+                            <a href="#" class="button" onclick="rcVacationUpload(event)"><?php esc_html_e( 'Seleccionar Logo', 'rafflecore' ); ?></a>
+                            <a href="#" class="button" onclick="rcVacationRemove(event)" style="color:#a00;<?php echo $logo_url ? '' : 'display:none;'; ?>" id="rc-vacation-remove"><?php esc_html_e( 'Quitar', 'rafflecore' ); ?></a>
+                        </div>
+                    </div>
+                    <script>
+                    function rcVacationUpload(e) {
+                        e.preventDefault();
+                        var frame = wp.media({ title: '<?php echo esc_js( __( 'Seleccionar Logo', 'rafflecore' ) ); ?>', button: { text: '<?php echo esc_js( __( 'Usar este logo', 'rafflecore' ) ); ?>' }, multiple: false, library: { type: 'image' } });
+                        frame.on('select', function() {
+                            var url = frame.state().get('selection').first().toJSON().url;
+                            document.getElementById('rc_vacation_logo').value = url;
+                            document.getElementById('rc-vacation-preview').innerHTML = '<img src="' + url + '" alt="Logo" style="max-height:70px;max-width:180px;">';
+                            document.getElementById('rc-vacation-remove').style.display = '';
+                        });
+                        frame.open();
+                    }
+                    function rcVacationRemove(e) {
+                        e.preventDefault();
+                        document.getElementById('rc_vacation_logo').value = '';
+                        document.getElementById('rc-vacation-preview').innerHTML = '<span style="color:#888;font-size:13px;"><?php echo esc_js( __( 'Sin logo', 'rafflecore' ) ); ?></span>';
+                        e.target.style.display = 'none';
+                    }
+                    </script>
+                </div>
+
+                <div class="rc-form-group">
+                    <label for="rc_vacation_title"><?php esc_html_e( 'Título del cartel', 'rafflecore' ); ?></label>
+                    <input type="text" id="rc_vacation_title" name="rc_vacation_title"
+                           value="<?php echo esc_attr( get_option( 'rafflecore_vacation_title', 'GRACIAS POR PARTICIPAR!' ) ); ?>">
+                </div>
+
+                <div class="rc-form-group">
+                    <label for="rc_vacation_subtitle"><?php esc_html_e( 'Subtítulo del cartel', 'rafflecore' ); ?></label>
+                    <input type="text" id="rc_vacation_subtitle" name="rc_vacation_subtitle"
+                           value="<?php echo esc_attr( get_option( 'rafflecore_vacation_subtitle', 'NOS VEMOS PRONTO CON UN NUEVO EVENTO!' ) ); ?>">
+                </div>
+            </div>
+        </div>
+
+        <div class="rc-panel">
+            <h2> <?php esc_html_e( 'Información del Sistema', 'rafflecore' ); ?></h2>
             <table class="rc-info-table">
                 <tr><th><?php esc_html_e( 'Versión del Plugin', 'rafflecore' ); ?></th><td><?php echo esc_html( RAFFLECORE_VERSION ); ?></td></tr>
                 <tr><th><?php esc_html_e( 'Modo Actual', 'rafflecore' ); ?></th><td><span class="rc-badge rc-badge-active"><?php echo esc_html( ucfirst( get_option( 'rafflecore_mode', 'local' ) ) ); ?></span></td></tr>

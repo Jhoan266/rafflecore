@@ -196,6 +196,14 @@ if ( $is_edit && ! empty( $raffle->lucky_numbers ) ) {
             </div>
 
             <div class="rc-form-group rc-col-full">
+                <label for="rc_lucky_numbers_text"><?php esc_html_e( 'Texto Números Bendecidos', 'rafflecore' ); ?></label>
+                <input type="text" id="rc_lucky_numbers_text" name="lucky_numbers_text"
+                       value="<?php echo $is_edit ? esc_attr( $raffle->lucky_numbers_text ?? '' ) : ''; ?>"
+                       placeholder="<?php esc_attr_e( '¡Si te toca uno de estos números, ganas un premio adicional!', 'rafflecore' ); ?>">
+                <p class="rc-help"><?php esc_html_e( 'Personaliza la oración que aparece sobre los números bendecidos.', 'rafflecore' ); ?></p>
+            </div>
+
+            <div class="rc-form-group rc-col-full">
                 <label><?php esc_html_e( 'Imagen del Premio', 'rafflecore' ); ?></label>
                 <div class="rc-image-upload">
                     <input type="hidden" id="rc_prize_image" name="prize_image"

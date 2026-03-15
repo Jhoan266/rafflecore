@@ -86,6 +86,7 @@ class RaffleCore_Raffle_Model {
             'custom_font_url'     => '',
             'color_palette'       => '',
             'min_custom_qty'      => 0,
+            'lucky_numbers_text'  => '',
             'created_at'          => current_time( 'mysql' ),
         );
 
@@ -117,6 +118,7 @@ class RaffleCore_Raffle_Model {
             'custom_font_url'     => '%s',
             'color_palette'       => '%s',
             'min_custom_qty'      => '%d',
+            'lucky_numbers_text'  => '%s',
             'created_at'          => '%s',
         );
 
@@ -157,6 +159,7 @@ class RaffleCore_Raffle_Model {
             'type'                => '%s',
             'max_number'          => '%d',
             'countdown_threshold' => '%d',
+            'lucky_numbers_text'  => '%s',
             'winner_ticket_id'    => '%d',
             'wc_product_id'       => '%d',
             'font_family'         => '%s',

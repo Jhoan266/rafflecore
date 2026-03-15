@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 class RaffleCore_Activator {
 
-    const DB_VERSION = '3.5.0';
+    const DB_VERSION = '3.7.0';
 
     public static function activate( $network_wide = false ) {
         if ( is_multisite() && $network_wide ) {
@@ -174,6 +174,14 @@ class RaffleCore_Activator {
                 $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `lottery` varchar(255) DEFAULT '' AFTER `description`" );
             }
         }
+
+        // v3.6.0 → v3.7.0: Añadir lucky_numbers_text a rc_raffles
+        if ( version_compare( $from_version, '3.7.0', '<' ) ) {
+            $raffle_cols = $wpdb->get_col( "SHOW COLUMNS FROM {$t_raffles}", 0 );
+            if ( is_array( $raffle_cols ) && ! in_array( 'lucky_numbers_text', $raffle_cols, true ) ) {
+                $wpdb->query( "ALTER TABLE {$t_raffles} ADD COLUMN `lucky_numbers_text` text DEFAULT NULL AFTER `lucky_numbers`" );
+            }
+        }
     }
 
     /**
@@ -220,6 +228,7 @@ class RaffleCore_Activator {
             winner_ticket_id bigint(20) UNSIGNED DEFAULT NULL,
             wc_product_id bigint(20) UNSIGNED DEFAULT NULL,
             lucky_numbers text DEFAULT NULL,
+            lucky_numbers_text text DEFAULT NULL,
             font_family varchar(100) DEFAULT '',
             custom_font_url varchar(500) DEFAULT '',
             prize_gallery text DEFAULT NULL,

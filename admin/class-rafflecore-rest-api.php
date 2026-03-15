@@ -143,7 +143,7 @@ class RaffleCore_REST_API {
 
         $results = $wpdb->get_results( $wpdb->prepare(
             "SELECT t.ticket_number, r.title as raffle_title, r.id as raffle_id,
-                    r.draw_date, r.status as raffle_status, r.total_tickets,
+                    r.draw_date, r.status as raffle_status, r.total_tickets, r.ticket_digits,
                     p.purchase_date, p.quantity, p.amount_paid
              FROM {$p}rc_tickets t
              JOIN {$p}rc_purchases p ON t.purchase_id = p.id
@@ -154,7 +154,7 @@ class RaffleCore_REST_API {
         ) );
 
         if ( empty( $results ) ) {
-            return rest_ensure_response( array( 'raffles' => array(), 'message' => __( 'No se encontraron boletos.', 'rafflecore' ) ) );
+            return rest_ensure_response( array() );
         }
 
         // Agrupar por rifa
@@ -164,17 +164,14 @@ class RaffleCore_REST_API {
             $digits = isset($row->ticket_digits) ? (int)$row->ticket_digits : null;
             if ( ! isset( $grouped[ $rid ] ) ) {
                 $grouped[ $rid ] = array(
-                    'raffle_id'    => $rid,
-                    'raffle_title' => $row->raffle_title,
-                    'draw_date'    => $row->draw_date,
-                    'status'       => $row->raffle_status,
-                    'tickets'      => array(),
+                    'raffle'  => $row->raffle_title,
+                    'tickets' => array(),
                 );
             }
             $grouped[ $rid ]['tickets'][] = RaffleCore_Ticket_Service::format_numbers([$row->ticket_number], ['digits'=>$digits])[0];
         }
 
-        return rest_ensure_response( array( 'raffles' => array_values( $grouped ) ) );
+        return rest_ensure_response( array_values( $grouped ) );
     }
 
     public function get_coupons( $request ) {

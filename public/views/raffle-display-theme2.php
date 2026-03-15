@@ -149,7 +149,15 @@ if ( ! empty( $raffle->font_family ) ) {
             <?php if ( ! empty( $lucky ) ) : ?>
             <div class="rc-t2-lucky-section">
                 <h3 class="rc-t2-section-title">🍀 Números de la Suerte</h3>
-                <p class="rc-t2-lucky-subtitle">¡Si te toca uno de estos números, ganas un premio adicional!</p>
+                <p class="rc-t2-lucky-subtitle">
+                    <?php 
+                    if ( ! empty( $raffle->lucky_numbers_text ) ) {
+                        echo esc_html( $raffle->lucky_numbers_text );
+                    } else {
+                        echo '¡Si te toca uno de estos números, ganas un premio adicional!';
+                    }
+                    ?>
+                </p>
                 <div class="rc-t2-lucky-grid">
                     <?php foreach ( $lucky as $num ) : ?>
                     <div class="rc-t2-lucky-number"><?php echo esc_html( $num ); ?></div>

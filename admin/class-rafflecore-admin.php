@@ -194,6 +194,12 @@ class RaffleCore_Admin {
                 update_option( 'rafflecore_currency', $currency );
             }
 
+            // Vacation mode
+            update_option( 'rafflecore_vacation_mode', isset( $_POST['rc_vacation_mode'] ) ? 'yes' : 'no' );
+            update_option( 'rafflecore_vacation_logo', esc_url_raw( wp_unslash( $_POST['rc_vacation_logo'] ?? '' ) ) );
+            update_option( 'rafflecore_vacation_title', sanitize_text_field( wp_unslash( $_POST['rc_vacation_title'] ?? '' ) ) );
+            update_option( 'rafflecore_vacation_subtitle', sanitize_text_field( wp_unslash( $_POST['rc_vacation_subtitle'] ?? '' ) ) );
+
             RaffleCore_Logger::log( 'settings_updated', 'settings', 0 );
 
             wp_safe_redirect( admin_url( 'admin.php?page=rc-settings&msg=saved' ) );

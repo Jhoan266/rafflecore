@@ -160,7 +160,15 @@ if ( ! empty( $raffle->color_palette ) ) {
             <?php if ( ! empty( $lucky ) ) : ?>
             <div class="rc-lucky-section">
                 <h3 class="rc-section-title">🍀 <?php esc_html_e( 'Números de la Suerte', 'rafflecore' ); ?></h3>
-                <p class="rc-lucky-subtitle"><?php esc_html_e( '¡Si te toca uno de estos números, ganas un premio adicional!', 'rafflecore' ); ?></p>
+                <p class="rc-lucky-subtitle">
+                    <?php 
+                    if ( ! empty( $raffle->lucky_numbers_text ) ) {
+                        echo esc_html( $raffle->lucky_numbers_text );
+                    } else {
+                        esc_html_e( '¡Si te toca uno de estos números, ganas un premio adicional!', 'rafflecore' );
+                    }
+                    ?>
+                </p>
                 <div class="rc-lucky-grid">
                     <?php foreach ( $lucky as $num ) : ?>
                     <div class="rc-lucky-number"><span class="rc-lucky-num"><?php echo esc_html( $num ); ?></span></div>

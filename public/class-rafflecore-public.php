@@ -91,6 +91,11 @@ class RaffleCore_Public {
             return '<p style="color:red;text-align:center;">' . esc_html__( 'RaffleCore: rifa no encontrada.', 'rafflecore' ) . '</p>';
         }
 
+        // Vacation mode overrides everything
+        if ( get_option( 'rafflecore_vacation_mode', 'no' ) === 'yes' ) {
+            return $this->render_vacation_banner();
+        }
+
         if ( $raffle->status !== 'active' ) {
             return '<p style="text-align:center;">' . esc_html__( 'Esta rifa no está disponible actualmente.', 'rafflecore' ) . '</p>';
         }
@@ -105,6 +110,109 @@ class RaffleCore_Public {
 
         ob_start();
         include $view_file;
+        return ob_get_clean();
+    }
+
+    /**
+     * Render vacation mode banner when no active raffles.
+     */
+    private function render_vacation_banner() {
+        $logo     = get_option( 'rafflecore_vacation_logo', '' );
+        $title    = get_option( 'rafflecore_vacation_title', 'GRACIAS POR PARTICIPAR!' );
+        $subtitle = get_option( 'rafflecore_vacation_subtitle', 'NOS VEMOS PRONTO CON UN NUEVO EVENTO!' );
+
+        ob_start();
+        ?>
+        <div class="rc-vacation-wrapper">
+            <div class="rc-vacation-smoke"></div>
+            <div class="rc-vacation-card">
+                <?php if ( $logo ) : ?>
+                    <img src="<?php echo esc_url( $logo ); ?>" alt="Logo" class="rc-vacation-logo">
+                <?php endif; ?>
+                <h2 class="rc-vacation-title"><?php echo esc_html( $title ); ?></h2>
+                <p class="rc-vacation-subtitle"><?php echo esc_html( $subtitle ); ?></p>
+            </div>
+        </div>
+        <style>
+            .rc-vacation-wrapper {
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            .rc-vacation-smoke {
+                position: absolute;
+                inset: -20px;
+                background:
+                    radial-gradient(ellipse at 20% 50%, rgba(100, 140, 200, 0.3) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 30%, rgba(80, 120, 180, 0.25) 0%, transparent 55%),
+                    radial-gradient(ellipse at 50% 80%, rgba(60, 100, 160, 0.2) 0%, transparent 50%),
+                    radial-gradient(ellipse at 60% 20%, rgba(90, 150, 210, 0.2) 0%, transparent 45%),
+                    linear-gradient(180deg, #1a2a4a 0%, #2a4a7a 30%, #1e3a5e 60%, #0f1f35 100%);
+                animation: rc-smoke-drift 8s ease-in-out infinite alternate;
+                filter: blur(30px);
+            }
+            @keyframes rc-smoke-drift {
+                0%   { transform: scale(1) translate(0, 0); opacity: 0.8; }
+                33%  { transform: scale(1.05) translate(10px, -5px); opacity: 1; }
+                66%  { transform: scale(1.02) translate(-8px, 3px); opacity: 0.9; }
+                100% { transform: scale(1.08) translate(5px, -8px); opacity: 1; }
+            }
+            .rc-vacation-card {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 0 40px 35px;
+                background: rgba(15, 25, 50, 0.75);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-radius: 16px;
+                border: 1px solid rgba(100, 150, 220, 0.15);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                max-width: 500px;
+                width: 90%;
+            }
+            .rc-vacation-logo {
+                max-width: 320px;
+                max-height: 220px;
+                margin-top: 0;
+                margin-bottom: 10px;
+                object-fit: contain;
+                filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+            }
+            .rc-vacation-title {
+                color: #fff;
+                font-size: 28px;
+                font-weight: 800;
+                letter-spacing: 2px;
+                margin: 0 0 14px;
+                text-transform: uppercase;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            }
+            .rc-vacation-subtitle {
+                color: rgba(255, 255, 255, 0.85);
+                font-size: 18px;
+                font-weight: 700;
+                letter-spacing: 1px;
+                margin: 0;
+                text-transform: uppercase;
+                text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+            }
+            @media (max-width: 600px) {
+                .rc-vacation-card { padding: 40px 24px; }
+                .rc-vacation-title { font-size: 20px; }
+                .rc-vacation-subtitle { font-size: 14px; }
+                .rc-vacation-logo { max-width: 160px; }
+            }
+        </style>
+        <script>document.body.appendChild(document.querySelector('.rc-vacation-wrapper'));</script>
+        <?php
         return ob_get_clean();
     }
 
