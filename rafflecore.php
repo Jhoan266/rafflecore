@@ -61,7 +61,6 @@ require_once RAFFLECORE_PATH . 'modules/draw/class-draw-service.php';
 require_once RAFFLECORE_PATH . 'modules/email/class-email-service.php';
 require_once RAFFLECORE_PATH . 'modules/woocommerce/class-woocommerce-integration.php';
 require_once RAFFLECORE_PATH . 'modules/woocommerce/class-wc-product-manager.php';
-require_once RAFFLECORE_PATH . 'modules/woocommerce/class-wc-gateway-wompi.php';
 require_once RAFFLECORE_PATH . 'modules/purchase/class-reservation-service.php';
 
 // New modules v3.0.0

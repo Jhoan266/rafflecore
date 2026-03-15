@@ -45,7 +45,8 @@ class RaffleCore {
             $this->loader->add_action( 'woocommerce_admin_order_data_after_billing_address', $wc, 'admin_order_meta' );
             $this->loader->add_action( 'woocommerce_checkout_order_created', $wc, 'on_order_created' );
 
-            // Wompi payment gateway
+            // Wompi payment gateway (loaded here because it extends WC_Payment_Gateway)
+            require_once RAFFLECORE_PATH . 'modules/woocommerce/class-wc-gateway-wompi.php';
             add_filter( 'woocommerce_payment_gateways', array( 'RaffleCore_WC_Gateway_Wompi', 'register' ) );
 
             // WC Product Manager — precio dinámico y metadata en carrito/orden
