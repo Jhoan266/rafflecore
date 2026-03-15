@@ -214,8 +214,11 @@
 .rc-hero-image img {
     width: 100% !important;
     height: auto !important;
+    max-height: 600px;
+    object-fit: contain !important;
     display: block !important;
-    transition: transform .8s cubic-bezier(.4,0,.2,1);
+    background: var(--rc-bg-3);
+    transition: none !important;
 }
 
 .rc-hero:hover .rc-hero-image img {
@@ -223,14 +226,7 @@
 }
 
 .rc-hero-gradient {
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 80px;
-    background: linear-gradient(to top, var(--rc-primary), transparent);
-    z-index: 2;
-    pointer-events: none;
+    display: none !important;
 }
 
 .rc-hero-body {
@@ -1121,7 +1117,8 @@
 /* ─── Responsive (768px) ─────────────────── */
 @media (max-width: 768px) {
     .rc-hero-image img {
-        height: 280px;
+        height: auto !important;
+        max-height: 400px;
     }
 
     .rc-hero-body {
@@ -1190,7 +1187,8 @@
     }
 
     .rc-hero-image img {
-        height: 220px;
+        height: auto !important;
+        max-height: 350px;
     }
 
     .rc-hero-body {
