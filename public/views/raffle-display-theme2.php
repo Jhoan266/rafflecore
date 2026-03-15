@@ -83,7 +83,7 @@ if ( ! empty( $raffle->font_family ) ) {
                     <?php endif; ?>
                     <?php if ( $raffle->draw_date ) : ?>
                         <div class="rc-t2-meta">
-                            <span>📅 Sorteo: <?php echo esc_html( date_i18n( 'd \d\e F, Y — H:i', strtotime( $raffle->draw_date ) ) ); ?></span>
+                            <span>📅 Sorteo: <?php echo esc_html( date_i18n( 'd \d\e F, Y', strtotime( $raffle->draw_date ) ) ); ?></span>
                         </div>
                     <?php endif; ?>
                 </div>

@@ -111,13 +111,12 @@
       var now = Date.now();
       var diff = drawDate - now;
 
-      if (diff <= 0 && !expired) {
-        expired = true;
-        $cd.hide();
+      if (diff <= 0) {
+        $cd.show();
         $("#rc-countdown-expired").show();
+        $("#rc-cd-days, #rc-cd-hours, #rc-cd-minutes, #rc-cd-seconds").text("00");
         return;
       }
-      if (expired) return;
 
       var d = Math.floor(diff / 86400000);
       var h = Math.floor((diff % 86400000) / 3600000);

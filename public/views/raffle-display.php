@@ -91,7 +91,7 @@ if ( ! empty( $raffle->color_palette ) ) {
                     </div>
                     <?php endif; ?>
                     <?php if ( $raffle->draw_date ) : ?>
-                    <div class="rc-meta"><span class="rc-meta-item">📅 <?php esc_html_e( 'Sorteo', 'rafflecore' ); ?>: <?php echo esc_html( date_i18n( 'd \d\e F, Y — H:i', strtotime( $raffle->draw_date ) ) ); ?></span></div>
+                    <div class="rc-meta"><span class="rc-meta-item">📅 <?php esc_html_e( 'Sorteo', 'rafflecore' ); ?>: <?php echo esc_html( date_i18n( 'd \d\e F, Y', strtotime( $raffle->draw_date ) ) ); ?></span></div>
                     <?php endif; ?>
                 </div>
             </div><!-- /.rc-hero -->

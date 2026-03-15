@@ -21,7 +21,7 @@ $pkgs     = json_decode( $raffle->packages, true );
             <div class="rc-detail-meta">
                 <div><strong><?php esc_html_e( 'Precio:', 'rafflecore' ); ?></strong> $<?php echo number_format_i18n( $raffle->ticket_price ); ?></div>
                 <div><strong><?php esc_html_e( 'Boletos:', 'rafflecore' ); ?></strong> <?php echo number_format_i18n( $raffle->sold_tickets ); ?> / <?php echo number_format_i18n( $raffle->total_tickets ); ?></div>
-                <div><strong><?php esc_html_e( 'Sorteo:', 'rafflecore' ); ?></strong> <?php echo $raffle->draw_date ? esc_html( date_i18n( 'd/m/Y H:i', strtotime( $raffle->draw_date ) ) ) : esc_html__( 'No definido', 'rafflecore' ); ?></div>
+                <div><strong><?php esc_html_e( 'Sorteo:', 'rafflecore' ); ?></strong> <?php echo $raffle->draw_date ? esc_html( date_i18n( 'd/m/Y', strtotime( $raffle->draw_date ) ) ) : esc_html__( 'No definido', 'rafflecore' ); ?></div>
                 <div><strong>Shortcode:</strong> <code>[rafflecore id="<?php echo intval( $raffle->id ); ?>"]</code></div>
             </div>
 
@@ -147,7 +147,7 @@ $pkgs     = json_decode( $raffle->packages, true );
                             <?php echo esc_html( ucfirst( $p->status ) ); ?>
                         </span>
                     </td>
-                    <td><?php echo esc_html( date_i18n( 'd/m/Y H:i', strtotime( $p->purchase_date ) ) ); ?></td>
+                    <td><?php echo esc_html( date_i18n( 'd/m/Y', strtotime( $p->purchase_date ) ) ); ?></td>
                     <td>
                         <?php if ( ! empty( $ticket_numbers ) ) : ?>
                             <div class="rc-ticket-badges">

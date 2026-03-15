@@ -17,7 +17,7 @@ class RaffleCore_Email_Service {
 
         $total_digits = strlen( (string) $raffle->total_tickets );
         $formatted    = RaffleCore_Ticket_Service::format_numbers( $tickets, $raffle->total_tickets );
-        $draw_date    = $raffle->draw_date ? date_i18n( 'd \d\e F, Y — H:i', strtotime( $raffle->draw_date ) ) : 'Por anunciar';
+        $draw_date    = $raffle->draw_date ? date_i18n( 'd \d\e F, Y', strtotime( $raffle->draw_date ) ) : 'Por anunciar';
         $site_name    = get_bloginfo( 'name' );
 
         $subject = "🎟️ ¡Tus boletos para {$raffle->title}! — {$site_name}";

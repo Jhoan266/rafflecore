@@ -64,7 +64,7 @@
                             <?php echo esc_html( ucfirst( $b->status ) ); ?>
                         </span>
                     </td>
-                    <td><?php echo esc_html( date_i18n( 'd/m/Y H:i', strtotime( $b->purchase_date ) ) ); ?></td>
+                    <td><?php echo esc_html( date_i18n( 'd/m/Y', strtotime( $b->purchase_date ) ) ); ?></td>
                 </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
