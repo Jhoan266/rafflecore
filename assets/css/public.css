@@ -12,13 +12,18 @@
     --rc-text: #1a1a2e;
     --rc-text-muted: #64748b;
     --rc-bg: #f4f6fb;
+    --rc-bg-2: #f8fafc;
+    --rc-bg-3: #ffffff;
+    --rc-bg-soft: rgba(108, 92, 231, 0.05);
     --rc-card-bg: #fff;
     --rc-radius: 20px;
     --rc-radius-sm: 12px;
-    --rc-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 24px rgba(108,92,231,.06);
-    --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(108,92,231,.10);
-    --rc-shadow-hover: 0 12px 40px rgba(108,92,231,.18);
+    --rc-shadow-rgb: 108, 92, 231;
+    --rc-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 24px var(--rc-bg-soft);
+    --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(var(--rc-shadow-rgb), 0.1);
+    --rc-shadow-hover: 0 12px 40px rgba(var(--rc-shadow-rgb), 0.18);
     --rc-transition: .3s cubic-bezier(.4,0,.2,1);
+    --rc-gradient: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
 }
 
 /* ─── Container ──────────────────────────── */
@@ -1500,30 +1505,10 @@
     --rc-primary: #e84393;
     --rc-primary-dark: #d63384;
     --rc-accent: #fd79a8;
-    --rc-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 24px rgba(232,67,147,.06);
-    --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(232,67,147,.10);
-    --rc-shadow-hover: 0 12px 40px rgba(232,67,147,.18);
-}
-.rc-palette-vibrant .rc-t2-hero {
-    background: linear-gradient(135deg, #ff4d97 0%, #d63384 50%, #b31d63 100%);
-    box-shadow: 0 30px 60px rgba(232, 67, 147, 0.15);
-}
-.rc-palette-vibrant .rc-t2-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(214, 51, 132, 0.4) 40px, rgba(179, 29, 99, 0.9) 120px);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-}
-.rc-palette-vibrant .rc-hero {
-    background: linear-gradient(135deg, #ff4d97 0%, #d63384 50%, #b31d63 100%);
-}
-.rc-palette-vibrant .rc-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(214, 51, 132, 0.7) 30px, rgba(179, 29, 99, 1) 100%);
-}
-.rc-palette-vibrant .rc-t2-meta { background: rgba(255, 77, 151, 0.15); color: #fff; }
-.rc-palette-vibrant .rc-t2-cd-number {
-    background: linear-gradient(180deg, #ff4d97 0%, #d63384 100%) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 25px rgba(214, 51, 132, 0.3) !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
+    --rc-shadow-rgb: 232, 67, 147;
+    --rc-bg-soft: rgba(232, 67, 147, 0.05);
+    --rc-gradient: linear-gradient(135deg, #ff4d97 0%, #d63384 100%);
+    --rc-countdown-bg: linear-gradient(135deg, #2d0a1a 0%, #4a0e2a 100%);
 }
 
 /* Ocean — Azul / Turquesa */
@@ -1531,30 +1516,21 @@
     --rc-primary: #0984e3;
     --rc-primary-dark: #0870c4;
     --rc-accent: #00cec9;
-    --rc-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 24px rgba(9,132,227,.06);
-    --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(9,132,227,.10);
-    --rc-shadow-hover: 0 12px 40px rgba(9,132,227,.18);
+    --rc-shadow-rgb: 9, 132, 227;
+    --rc-bg-soft: rgba(9, 132, 227, 0.05);
+    --rc-gradient: linear-gradient(135deg, #0fbcf9 0%, #0984e3 100%);
+    --rc-countdown-bg: linear-gradient(135deg, #0a1a2d 0%, #0e244a 100%);
 }
-.rc-palette-ocean .rc-t2-hero {
-    background: linear-gradient(135deg, #0fbcf9 0%, #0984e3 50%, #0652dd 100%);
-    box-shadow: 0 30px 60px rgba(9, 132, 227, 0.15);
-}
-.rc-palette-ocean .rc-t2-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(9, 132, 227, 0.4) 40px, rgba(8, 112, 196, 0.9) 120px);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-}
-.rc-palette-ocean .rc-hero {
-    background: linear-gradient(135deg, #0fbcf9 0%, #0984e3 50%, #0652dd 100%);
-}
-.rc-palette-ocean .rc-hero-body {
-    background: linear-gradient(to bottom, transparent, rgba(9, 132, 227, 0.7) 30px, rgba(8, 112, 196, 1) 100%);
-}
-.rc-palette-ocean .rc-t2-meta { background: rgba(15, 188, 249, 0.15); color: #fff; }
-.rc-palette-ocean .rc-t2-cd-number {
-    background: linear-gradient(180deg, #0fbcf9 0%, #0984e3 100%) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 10px 25px rgba(9, 132, 227, 0.3) !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
+
+/* Sunset — Naranja / Dorado */
+.rc-palette-sunset {
+    --rc-primary: #e17055;
+    --rc-primary-dark: #d35400;
+    --rc-accent: #fdcb6e;
+    --rc-shadow-rgb: 225, 112, 85;
+    --rc-bg-soft: rgba(225, 112, 85, 0.05);
+    --rc-gradient: linear-gradient(135deg, #ff9f43 0%, #e17055 100%);
+    --rc-countdown-bg: linear-gradient(135deg, #2d1a0a 0%, #4a270e 100%);
 }
 
 /* Sunset — Naranja / Dorado */
