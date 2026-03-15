@@ -212,15 +212,14 @@
 }
 
 .rc-hero-image img {
-    width: 100%;
-    height: 360px;
-    object-fit: cover;
-    display: block;
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
     transition: transform .8s cubic-bezier(.4,0,.2,1);
 }
 
 .rc-hero:hover .rc-hero-image img {
-    transform: scale(1.04);
+    transform: none !important;
 }
 
 .rc-hero-gradient {
@@ -235,28 +234,40 @@
 }
 
 .rc-hero-body {
-    position: relative;
-    padding: 20px 24px 32px;
-    color: #fff;
+    position: relative !important;
+    padding: 6px 20px 10px !important;
+    color: #fff !important;
     background: var(--rc-primary);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
 }
 
 .rc-hero-title {
-    font-size: 32px;
-    font-weight: 800;
-    margin: 0 0 16px;
-    line-height: 1.2;
-    letter-spacing: -.02em;
-    background: rgba(255, 255, 255, .12);
-    border: 1px solid rgba(255, 255, 255, .2);
-    backdrop-filter: blur(6px);
-    padding: 12px 24px;
-    border-radius: 50px;
-    display: inline-block;
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    margin: 0 0 8px !important;
+    line-height: 1.1 !important;
+    letter-spacing: -.02em !important;
+    background: rgba(255, 255, 255, .12) !important;
+    border: 1px solid rgba(255, 255, 255, .2) !important;
+    backdrop-filter: blur(6px) !important;
+    padding: 6px 16px !important;
+    border-radius: 50px !important;
+    display: inline-block !important;
+}
+
+.rc-hero-desc {
+    font-size: 14px !important;
+    margin-bottom: 6px !important;
+    opacity: .9 !important;
+    line-height: 1.4 !important;
+}
+
+.rc-hero-meta {
+    margin-top: 2px !important;
+    font-size: 13px !important;
 }
 
 /* Prize Badge — Cylinder */
@@ -780,6 +791,10 @@
     font-weight: 700;
     cursor: pointer;
     transition: all .2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 .rc-qty-btn:hover {
@@ -1147,6 +1162,14 @@
         gap: 16px;
     }
 
+    .rc-theme1 {
+        padding: 20px 12px;
+    }
+
+    .rc-theme1 .rc-layout {
+        gap: 16px;
+    }
+
     /* Prevent iOS Safari zooming */
     .rc-field input,
     .rc-qty-input,
@@ -1158,7 +1181,8 @@
 /* ─── Responsive (600px & Mobile) ────────── */
 @media (max-width: 600px) {
     .rc-raffle {
-        padding: 8px 10px 30px;
+        padding: 16px 12px;
+        gap: 16px;
     }
 
     .rc-hero {
@@ -1211,13 +1235,11 @@
     }
 
     .rc-progress-details {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        text-align: left;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px;
     }
 
     .rc-progress-detail {
-        display: flex;
         justify-content: space-between;
         align-items: center;
         background: var(--rc-bg);
@@ -1471,6 +1493,27 @@
     --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(232,67,147,.10);
     --rc-shadow-hover: 0 12px 40px rgba(232,67,147,.18);
 }
+.rc-palette-vibrant .rc-t2-hero {
+    background: linear-gradient(135deg, #ff4d97 0%, #d63384 50%, #b31d63 100%);
+    box-shadow: 0 30px 60px rgba(232, 67, 147, 0.15);
+}
+.rc-palette-vibrant .rc-t2-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(214, 51, 132, 0.4) 40px, rgba(179, 29, 99, 0.9) 120px);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+}
+.rc-palette-vibrant .rc-hero {
+    background: linear-gradient(135deg, #ff4d97 0%, #d63384 50%, #b31d63 100%);
+}
+.rc-palette-vibrant .rc-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(214, 51, 132, 0.7) 30px, rgba(179, 29, 99, 1) 100%);
+}
+.rc-palette-vibrant .rc-t2-meta { background: rgba(255, 77, 151, 0.15); color: #fff; }
+.rc-palette-vibrant .rc-t2-cd-number {
+    background: linear-gradient(180deg, #ff4d97 0%, #d63384 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 25px rgba(214, 51, 132, 0.3) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+}
 
 /* Ocean — Azul / Turquesa */
 .rc-palette-ocean {
@@ -1480,6 +1523,27 @@
     --rc-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 24px rgba(9,132,227,.06);
     --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(9,132,227,.10);
     --rc-shadow-hover: 0 12px 40px rgba(9,132,227,.18);
+}
+.rc-palette-ocean .rc-t2-hero {
+    background: linear-gradient(135deg, #0fbcf9 0%, #0984e3 50%, #0652dd 100%);
+    box-shadow: 0 30px 60px rgba(9, 132, 227, 0.15);
+}
+.rc-palette-ocean .rc-t2-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(9, 132, 227, 0.4) 40px, rgba(8, 112, 196, 0.9) 120px);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+}
+.rc-palette-ocean .rc-hero {
+    background: linear-gradient(135deg, #0fbcf9 0%, #0984e3 50%, #0652dd 100%);
+}
+.rc-palette-ocean .rc-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(9, 132, 227, 0.7) 30px, rgba(8, 112, 196, 1) 100%);
+}
+.rc-palette-ocean .rc-t2-meta { background: rgba(15, 188, 249, 0.15); color: #fff; }
+.rc-palette-ocean .rc-t2-cd-number {
+    background: linear-gradient(180deg, #0fbcf9 0%, #0984e3 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 10px 25px rgba(9, 132, 227, 0.3) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
 }
 
 /* Sunset — Naranja / Dorado */
@@ -1491,7 +1555,27 @@
     --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(225,112,85,.10);
     --rc-shadow-hover: 0 12px 40px rgba(225,112,85,.18);
 }
-
+.rc-palette-sunset .rc-t2-hero {
+    background: linear-gradient(135deg, #ff9f43 0%, #e17055 50%, #c0392b 100%);
+    box-shadow: 0 30px 60px rgba(225, 112, 85, 0.15);
+}
+.rc-palette-sunset .rc-t2-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(225, 112, 85, 0.4) 40px, rgba(192, 57, 43, 0.9) 120px);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+}
+.rc-palette-sunset .rc-hero {
+    background: linear-gradient(135deg, #ff9f43 0%, #e17055 50%, #c0392b 100%);
+}
+.rc-palette-sunset .rc-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(225, 112, 85, 0.7) 30px, rgba(192, 57, 43, 1) 100%);
+}
+.rc-palette-sunset .rc-t2-meta { background: rgba(255, 159, 67, 0.15); color: #fff; }
+.rc-palette-sunset .rc-t2-cd-number {
+    background: linear-gradient(180deg, #ff9f43 0%, #e17055 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 25px rgba(225, 112, 85, 0.3) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+}
 /* Neon — Verde / Lima */
 .rc-palette-neon {
     --rc-primary: #00b894;
@@ -1500,6 +1584,27 @@
     --rc-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 24px rgba(0,184,148,.06);
     --rc-shadow-lg: 0 8px 32px rgba(0,0,0,.08), 0 20px 60px rgba(0,184,148,.10);
     --rc-shadow-hover: 0 12px 40px rgba(0,184,148,.18);
+}
+.rc-palette-neon .rc-t2-hero {
+    background: linear-gradient(135deg, #55efc4 0%, #00b894 50%, #009432 100%);
+    box-shadow: 0 30px 60px rgba(0, 184, 148, 0.15);
+}
+.rc-palette-neon .rc-t2-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(0, 184, 148, 0.4) 40px, rgba(0, 148, 50, 0.9) 120px);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+}
+.rc-palette-neon .rc-hero {
+    background: linear-gradient(135deg, #55efc4 0%, #00b894 50%, #009432 100%);
+}
+.rc-palette-neon .rc-hero-body {
+    background: linear-gradient(to bottom, transparent, rgba(0, 184, 148, 0.7) 30px, rgba(0, 148, 50, 1) 100%);
+}
+.rc-palette-neon .rc-t2-meta { background: rgba(85, 239, 196, 0.15); color: #fff; }
+.rc-palette-neon .rc-t2-cd-number {
+    background: linear-gradient(180deg, #55efc4 0%, #00b894 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 25px rgba(0, 184, 148, 0.3) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
 }
 
 /* Galaxy — Azul profundo / Morado / Magenta */
@@ -1622,10 +1727,16 @@
     box-shadow: 0 20px 80px rgba(30, 27, 75, 0.3);
 }
 
-.rc-palette-matte-fusion .rc-hero-body {
+.rc-palette-matte-fusion .rc-hero-body,
+.rc-palette-matte-fusion .rc-t2-hero-body {
     background: linear-gradient(to bottom, transparent, rgba(30, 27, 75, 0.7) 40px, rgba(30, 27, 75, 1) 120px);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
+}
+
+.rc-palette-matte-fusion .rc-t2-hero {
+    background: linear-gradient(160deg, #4f46e5 0%, #1e1b4b 100%);
+    box-shadow: 0 20px 80px rgba(30, 27, 75, 0.3);
 }
 
 /* Matte Cards & Sections */
@@ -1680,6 +1791,9 @@
 .rc-palette-matte-fusion .rc-cd-num,
 .rc-palette-matte-fusion .rc-t2-cd-number {
     color: #fff !important;
+    background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 10px 25px rgba(30, 27, 75, 0.4) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
 }
 
 .rc-palette-matte-fusion .rc-cd-label {
@@ -2314,6 +2428,9 @@
     font-size: 18px;
     cursor: pointer;
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
 }
 .rc-t2-qty-selector .rc-qty-input {

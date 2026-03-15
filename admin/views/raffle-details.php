@@ -120,12 +120,14 @@ $pkgs     = json_decode( $raffle->packages, true );
         <table class="rc-table">
             <thead>
                 <tr>
-                    <th><?php esc_html_e( 'Comprador', 'rafflecore' ); ?></th>
-                    <th><?php esc_html_e( 'Email', 'rafflecore' ); ?></th>
-                    <th><?php esc_html_e( 'Cantidad', 'rafflecore' ); ?></th>
-                    <th><?php esc_html_e( 'Estado', 'rafflecore' ); ?></th>
-                    <th><?php esc_html_e( 'Boletos', 'rafflecore' ); ?></th>
-                    <th><?php esc_html_e( 'Fecha', 'rafflecore' ); ?></th>
+                    <th>ID</th>
+                    <th><?php esc_html_e( 'NOMBRE', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'EMAIL', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'BOLETOS', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'TOTAL', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'ESTADO', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'FECHA', 'rafflecore' ); ?></th>
+                    <th><?php esc_html_e( 'NÚMEROS', 'rafflecore' ); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -135,14 +137,17 @@ $pkgs     = json_decode( $raffle->packages, true );
                     $ticket_numbers = RaffleCore_Ticket_Service::format_numbers(array_map(function($t){return $t->ticket_number;}, $tickets), ['digits'=>$digits]);
                 ?>
                 <tr>
+                    <td>#<?php echo intval( $p->id ); ?></td>
                     <td><strong><?php echo esc_html( $p->buyer_name ); ?></strong></td>
                     <td><?php echo esc_html( $p->buyer_email ); ?></td>
                     <td><?php echo intval( $p->quantity ); ?></td>
+                    <td>$<?php echo number_format_i18n( $p->amount_paid ); ?></td>
                     <td>
                         <span class="rc-badge rc-badge-<?php echo esc_attr( $p->status ); ?>">
                             <?php echo esc_html( ucfirst( $p->status ) ); ?>
                         </span>
                     </td>
+                    <td><?php echo esc_html( date_i18n( 'd/m/Y H:i', strtotime( $p->purchase_date ) ) ); ?></td>
                     <td>
                         <?php if ( ! empty( $ticket_numbers ) ) : ?>
                             <div class="rc-ticket-badges">
@@ -154,7 +159,6 @@ $pkgs     = json_decode( $raffle->packages, true );
                             <em><?php esc_html_e( 'Pendiente', 'rafflecore' ); ?></em>
                         <?php endif; ?>
                     </td>
-                    <td><?php echo esc_html( date_i18n( 'd/m/Y H:i', strtotime( $p->purchase_date ) ) ); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
