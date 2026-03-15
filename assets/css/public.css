@@ -2822,6 +2822,23 @@
 
     /* Column layout adjustments */
     .rc-theme1 .rc-layout, .rc-theme2 .rc-layout {
-        gap: 20px !important;
+        gap: 12px !important;
+    }
+
+    .rc-theme1 {
+        padding: 24px 12px !important;
+    }
+
+    .rc-theme1-countdown-section {
+        padding: 24px 12px !important;
+        border-radius: 12px 24px 12px 24px !important;
+    }
+
+    .rc-theme1 .rc-lucky-section {
+        padding: 24px 12px !important;
+    }
+
+    .rc-theme1 .rc-hero-body {
+        padding: 24px 16px !important;
     }
 }
